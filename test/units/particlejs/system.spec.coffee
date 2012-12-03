@@ -45,8 +45,7 @@ describe 'System,', ->
           @system.emit @emission
           @particle = @system.particles[0]
 
-        afterEach ->
-          @system.stop()
+        afterEach -> @system.stop()
 
         system(source).shouldHave(1).particles()
         system(source).shouldHave(1).emissions()
@@ -60,11 +59,22 @@ describe 'System,', ->
         particle('particle').life.shouldBe(100)
 
         describe 'when animating the system until the emission end,', ->
-          beforeEach ->
-            animate(1000)
+          beforeEach -> animate 1000
 
           system(source).should.not.emitting()
           system(source).shouldHave(9).particles()
           system(source).shouldHave(0).emissions()
           system(source).shouldHave().dispatched('emissionFinished')
           system(source).shouldHave().dispatched('particlesDied')
+
+        describe 'when adding a second emission after some time,', ->
+          beforeEach ->
+            animate 500
+            @system.emit new Emission(Particle)
+
+            system(source).shouldHave(2).emissions()
+
+            describe 'when animating past the life of the first emission,', ->
+              beforeEach -> animate 600
+
+              system(source).shouldHave(1).emissions()

@@ -648,8 +648,8 @@
     /* src/particlejs/system.coffee<System::constructor> line:3 */;
 
     function System(initializer, action) {
-      this.initializer = initializer;
-      this.action = action;
+      this.initializer = initializer != null ? initializer : new NullInitializer;
+      this.action = action != null ? action : new NullAction;
       this.particlesCreated = new Signal;
       this.particlesDied = new Signal;
       this.emissionStarted = new Signal;
@@ -741,7 +741,7 @@
 
     System.prototype.processEmissions = function(bias, biasInSeconds, time) {
       var emission, _i, _len, _ref, _results;
-      _ref = this.emissions;
+      _ref = this.emissions.concat();
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         emission = _ref[_i];

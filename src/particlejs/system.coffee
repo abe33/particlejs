@@ -1,8 +1,10 @@
 Signal = require '../vendor/signal'
 Impulse = require '../vendor/impulse'
+NullInitializer = require './initializers/null_initializer'
+NullAction = require './actions/null_action'
 
 class System
-  constructor: (@initializer, @action) ->
+  constructor: (@initializer=new NullInitializer, @action= new NullAction) ->
     @particlesCreated = new Signal
     @particlesDied = new Signal
     @emissionStarted = new Signal
@@ -56,7 +58,7 @@ class System
   emitting: -> @emissions.length > 0
 
   processEmissions: (bias, biasInSeconds, time) ->
-    for emission in @emissions
+    for emission in @emissions.concat()
       emission.prepare bias, biasInSeconds, time
       @processEmission emission
 
