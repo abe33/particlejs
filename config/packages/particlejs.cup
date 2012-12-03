@@ -1,6 +1,8 @@
 name: "particlejs"
 package: 'particlejs'
 includes: [
+  'src/vendor/signal'
+  'src/vendor/impulse'
   'src/particlejs/**/*.coffee'
 ]
 operators: [

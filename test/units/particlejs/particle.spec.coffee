@@ -4,7 +4,7 @@ require '../../test_helper'
 Particle = require '../../../lib/particlejs/particle'
 
 describe 'Particle', ->
-  beforeEach ->  @particle = particle()
+  beforeEach ->  @particle = new Particle
 
   describe 'when created', ->
     it 'should exist', ->

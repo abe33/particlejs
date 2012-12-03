@@ -29,7 +29,7 @@ class Emission
 
     particle
 
-  nextTime: -> @iterator / @currentCount * @currentTime
+  nextTime: -> @currentTime - @iterator / @currentCount * @currentTime
 
   finished: -> @timer.finished()
 

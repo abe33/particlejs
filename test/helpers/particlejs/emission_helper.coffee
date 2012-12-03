@@ -1,5 +1,10 @@
 
 global.emission = (source) ->
+  system:
+    shouldBe: (system) ->
+      it "should have its system define with #{system}", ->
+        expect(this[source].system).toBe(this[system])
+
   shouldBe:
     iterable: (times, max=100) ->
       it "should behave as an iterator with #{times} iterations", ->

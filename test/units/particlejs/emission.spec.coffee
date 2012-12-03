@@ -64,7 +64,8 @@ describe 'Emission', ->
           max = 100
           while e.hasNext()
             time = e.nextTime()
-            expect(time).toBe(e.iterator / e.currentCount * e.currentTime)
+            expect(time)
+            .toBe(e.currentTime - e.iterator / e.currentCount * e.currentTime)
 
             e.next()
             n++

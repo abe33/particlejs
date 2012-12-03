@@ -1,9 +1,242 @@
 (function() {
-  var BaseAction, ByRate, Emission, Life, Limited, Live, Mixin, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Point, Ponctual, Poolable, System,
+  var BaseAction, ByRate, Emission, Impulse, Life, Limited, Live, Mixin, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Point, Ponctual, Poolable, Signal, System, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   this.particlejs || (this.particlejs = {});
+
+  /* src/vendor/signal.coffee */;
+
+
+  /* src/vendor/signal.coffee<Signal> line:1 */;
+
+
+  Signal = (function() {
+    /* src/vendor/signal.coffee<Signal::constructor> line:2 */;
+
+    function Signal() {
+      this.listeners = [];
+    }
+
+    /* src/vendor/signal.coffee<Signal::add> line:5 */;
+
+
+    Signal.prototype.add = function(listener, context, priority) {
+      if (priority == null) {
+        priority = 0;
+      }
+      if (!this.registered(listener, context)) {
+        this.listeners.push([listener, context, false, priority]);
+        return this.sortListeners();
+      }
+    };
+
+    /* src/vendor/signal.coffee<Signal::addOnce> line:10 */;
+
+
+    Signal.prototype.addOnce = function(listener, context, priority) {
+      if (priority == null) {
+        priority = 0;
+      }
+      if (!this.registered(listener, context)) {
+        this.listeners.push([listener, context, true, priority]);
+        return this.sortListeners();
+      }
+    };
+
+    /* src/vendor/signal.coffee<Signal::remove> line:15 */;
+
+
+    Signal.prototype.remove = function(listener, context) {
+      if (this.registered(listener, context)) {
+        return this.listeners.splice(this.indexOf(listener, context), 1);
+      }
+    };
+
+    /* src/vendor/signal.coffee<Signal::removeAll> line:19 */;
+
+
+    Signal.prototype.removeAll = function() {
+      return this.listeners = [];
+    };
+
+    /* src/vendor/signal.coffee<Signal::indexOf> line:22 */;
+
+
+    Signal.prototype.indexOf = function(listener, context) {
+      var c, i, l, _i, _len, _ref, _ref1;
+      _ref = this.listeners;
+      for (i = _i = 0, _len = _ref.length; _i < _len; i = ++_i) {
+        _ref1 = _ref[i], l = _ref1[0], c = _ref1[1];
+        if (listener === l && context === c) {
+          return i;
+        }
+      }
+      return -1;
+    };
+
+    /* src/vendor/signal.coffee<Signal::registered> line:26 */;
+
+
+    Signal.prototype.registered = function(listener, context) {
+      return this.indexOf(listener, context) !== -1;
+    };
+
+    /* src/vendor/signal.coffee<Signal::sortListeners> line:29 */;
+
+
+    Signal.prototype.sortListeners = function() {
+      if (this.listeners.length <= 1) {
+        return;
+      }
+      return this.listeners.sort(function(a, b) {
+        var pA, pB, _ref;
+        _ref = [a[3], b[3]], pA = _ref[0], pB = _ref[1];
+        if (pA < pB) {
+          return 1;
+        } else if (pB < pA) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
+    };
+
+    /* src/vendor/signal.coffee<Signal::dispatch> line:36 */;
+
+
+    Signal.prototype.dispatch = function() {
+      var context, listener, listeners, once, priority, _i, _len, _ref, _results;
+      listeners = this.listeners.concat();
+      _results = [];
+      for (_i = 0, _len = listeners.length; _i < _len; _i++) {
+        _ref = listeners[_i], listener = _ref[0], context = _ref[1], once = _ref[2], priority = _ref[3];
+        listener.apply(context, arguments);
+        if (once) {
+          _results.push(this.remove(listener, context));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    return Signal;
+
+  })();
+
+  /* src/vendor/impulse.coffee */;
+
+
+  requestAnimationFrame = (typeof window !== "undefined" && window !== null ? window.requestAnimationFrame : void 0) || (typeof window !== "undefined" && window !== null ? window.webkitRequestAnimationFrame : void 0) || (typeof window !== "undefined" && window !== null ? window.mozRequestAnimationFrame : void 0) || (typeof window !== "undefined" && window !== null ? window.oRequestAnimationFrame : void 0) || (typeof window !== "undefined" && window !== null ? window.msRequestAnimationFrame : void 0) || function() {
+    return setTimeout(callback, 1000 / 60);
+  };
+
+  /* src/vendor/impulse.coffee<Impulse> line:9 */;
+
+
+  Impulse = (function(_super) {
+
+    __extends(Impulse, _super);
+
+    /* src/vendor/impulse.coffee<Impulse.instance> line:10 */;
+
+
+    Impulse.instance = function() {
+      return this._instance || (this._instance = new Impulse);
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::constructor> line:12 */;
+
+
+    function Impulse(timeScale) {
+      this.timeScale = timeScale != null ? timeScale : 1;
+      Impulse.__super__.constructor.call(this);
+      this.running = false;
+    }
+
+    /* src/vendor/impulse.coffee<Impulse::add> line:16 */;
+
+
+    Impulse.prototype.add = function(listener, context, priority) {
+      if (priority == null) {
+        priority = 0;
+      }
+      Impulse.__super__.add.call(this, listener, context, priority);
+      if (this.hasListeners() && !this.running) {
+        return this.start();
+      }
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::remove> line:20 */;
+
+
+    Impulse.prototype.remove = function(listener, context, priority) {
+      if (priority == null) {
+        priority = 0;
+      }
+      Impulse.__super__.remove.call(this, listener, context, priority);
+      if (this.running && !this.hasListeners()) {
+        return this.stop();
+      }
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::hasListeners> line:24 */;
+
+
+    Impulse.prototype.hasListeners = function() {
+      return this.listeners.length > 0;
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::start> line:27 */;
+
+
+    Impulse.prototype.start = function() {
+      this.running = true;
+      return this.initRun();
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::stop> line:31 */;
+
+
+    Impulse.prototype.stop = function() {
+      return this.running = false;
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::initRun> line:33 */;
+
+
+    Impulse.prototype.initRun = function() {
+      var _this = this;
+      this.time = this.getTime();
+      return requestAnimationFrame(function() {
+        return _this.run();
+      });
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::run> line:37 */;
+
+
+    Impulse.prototype.run = function() {
+      var s, t;
+      if (this.running) {
+        t = this.getTime();
+        s = (t - this.time) * this.timeScale;
+        this.dispatch(s, s / 1000, t);
+        return this.initRun();
+      }
+    };
+
+    /* src/vendor/impulse.coffee<Impulse::getTime> line:45 */;
+
+
+    Impulse.prototype.getTime = function() {
+      return new Date().getTime();
+    };
+
+    return Impulse;
+
+  })(Signal);
 
   /* src/particlejs/actions/base_action.coffee */;
 
@@ -184,7 +417,7 @@
 
 
     Emission.prototype.nextTime = function() {
-      return this.iterator / this.currentCount * this.currentTime;
+      return this.currentTime - this.iterator / this.currentCount * this.currentTime;
     };
 
     /* src/particlejs/emission.coffee<Emission::finished> line:30 */;
@@ -417,7 +650,189 @@
     function System(initializer, action) {
       this.initializer = initializer;
       this.action = action;
+      this.particlesCreated = new Signal;
+      this.particlesDied = new Signal;
+      this.emissionStarted = new Signal;
+      this.emissionFinished = new Signal;
+      this.particles = [];
+      this.emissions = [];
     }
+
+    /* src/particlejs/system.coffee<System::emit> line:11 */;
+
+
+    System.prototype.emit = function(emission) {
+      this.emissions.push(emission);
+      emission.system = this;
+      return this.startEmission(emission);
+    };
+
+    /* src/particlejs/system.coffee<System::startEmission> line:16 */;
+
+
+    System.prototype.startEmission = function(emission) {
+      emission.prepare(0, 0, this.getTime());
+      this.created = [];
+      this.died = [];
+      if (!this.running) {
+        this.start();
+      }
+      this.processEmission(emission);
+      this.emissionStarted.dispatch(this, emission);
+      if (this.created.length > 0) {
+        this.particlesCreated.dispatch(this, this.created);
+      }
+      if (this.died.length > 0) {
+        this.particlesDied.dispatch(this, this.died);
+      }
+      this.died = null;
+      return this.created = null;
+    };
+
+    /* src/particlejs/system.coffee<System::start> line:31 */;
+
+
+    System.prototype.start = function() {
+      if (!this.running) {
+        Impulse.instance().add(this.tick, this);
+        return this.running = true;
+      }
+    };
+
+    /* src/particlejs/system.coffee<System::stop> line:36 */;
+
+
+    System.prototype.stop = function() {
+      if (this.running) {
+        Impulse.instance().remove(this.tick, this);
+        return this.running = false;
+      }
+    };
+
+    /* src/particlejs/system.coffee<System::tick> line:41 */;
+
+
+    System.prototype.tick = function(bias, biasInSeconds, time) {
+      this.died = [];
+      this.created = [];
+      this.processParticles(bias, biasInSeconds, time);
+      if (this.emitting()) {
+        this.processEmissions(bias, biasInSeconds, time);
+      }
+      if (this.created.length > 0) {
+        this.particlesCreated.dispatch(this, this.created);
+      }
+      if (this.died.length > 0) {
+        this.particlesDied.dispatch(this, this.died);
+      }
+      this.died = null;
+      return this.created = null;
+    };
+
+    /* src/particlejs/system.coffee<System::emitting> line:54 */;
+
+
+    System.prototype.emitting = function() {
+      return this.emissions.length > 0;
+    };
+
+    /* src/particlejs/system.coffee<System::processEmissions> line:56 */;
+
+
+    System.prototype.processEmissions = function(bias, biasInSeconds, time) {
+      var emission, _i, _len, _ref, _results;
+      _ref = this.emissions;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        emission = _ref[_i];
+        emission.prepare(bias, biasInSeconds, time);
+        _results.push(this.processEmission(emission));
+      }
+      return _results;
+    };
+
+    /* src/particlejs/system.coffee<System::processEmission> line:61 */;
+
+
+    System.prototype.processEmission = function(emission) {
+      var particle, time, _results;
+      _results = [];
+      while (emission.hasNext()) {
+        time = emission.nextTime();
+        particle = emission.next();
+        this.created.push(particle);
+        this.registerParticle(particle);
+        this.initializeParticle(particle, time);
+        if (emission.finished()) {
+          this.removeEmission(emission);
+          _results.push(this.emissionFinished.dispatch(this, emission));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    /* src/particlejs/system.coffee<System::removeEmission> line:72 */;
+
+
+    System.prototype.removeEmission = function(emission) {
+      return this.emissions.splice(this.emissions.indexOf(emission), 1);
+    };
+
+    /* src/particlejs/system.coffee<System::processParticles> line:75 */;
+
+
+    System.prototype.processParticles = function(bias, biasInSeconds, time) {
+      var particle, _i, _len, _ref, _results;
+      this.action.prepare(bias, biasInSeconds, time);
+      _ref = this.particles.concat();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        particle = _ref[_i];
+        this.action.process(particle);
+        if (particle.dead) {
+          _results.push(this.unregisterParticle(particle));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    /* src/particlejs/system.coffee<System::initializeParticle> line:81 */;
+
+
+    System.prototype.initializeParticle = function(particle, time) {
+      this.initializer.initialize(particle);
+      this.action.prepare(time, time / 1000, this.getTime());
+      this.action.process(particle);
+      if (particle.dead) {
+        return this.unregisterParticle(particle);
+      }
+    };
+
+    /* src/particlejs/system.coffee<System::registerParticle> line:88 */;
+
+
+    System.prototype.registerParticle = function(particle) {
+      return this.particles.push(particle);
+    };
+
+    /* src/particlejs/system.coffee<System::unregisterParticle> line:91 */;
+
+
+    System.prototype.unregisterParticle = function(particle) {
+      this.died.push(particle);
+      return this.particles.splice(this.particles.indexOf(particle), 1);
+    };
+
+    /* src/particlejs/system.coffee<System::getTime> line:95 */;
+
+
+    System.prototype.getTime = function() {
+      return new Date().valueOf();
+    };
 
     return System;
 
@@ -490,6 +905,10 @@
     return NullTimer;
 
   })();
+
+  this.particlejs.Signal = Signal;
+
+  this.particlejs.Impulse = Impulse;
 
   this.particlejs.BaseAction = BaseAction;
 
