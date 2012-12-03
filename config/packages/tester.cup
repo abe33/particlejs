@@ -1,0 +1,9 @@
+name: "tester"
+includes: [
+  'src/tester/*.coffee'
+]
+operators: [
+  'join'
+  'compile'
+  'create:file'
+]
