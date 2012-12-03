@@ -1,0 +1,23 @@
+{
+  "name": "particlejs",
+  "version": "0.0.1",
+  "author": "TODO: Your name goes here",
+  "description": "TODO: Description goes here",
+  "keywords": [
+    "TODO: Module keywords goes here"
+  ],
+  "engine": {
+    "node": "~0.8.0"
+  },
+  "scripts": {
+    "test": "jasmine-node --coffee test"
+  },
+  "dependencies": {
+    "neat": "0.0.74",
+    "chancejs": "0.0.6",
+    "geomjs": "0.0.3"
+  },
+  "devDependencies": {
+    "jasmine-node": "*"
+  }
+}

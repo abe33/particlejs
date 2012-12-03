@@ -1,0 +1,6 @@
+npm 'neat', '0.0.74'
+npm 'chancejs', '0.0.6'
+npm 'geomjs', '0.0.3'
+
+group 'test', ->
+  npm 'jasmine-node'
