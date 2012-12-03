@@ -95,6 +95,7 @@ class System
   unregisterParticle: (particle) ->
     @died.push particle
     @particles.splice @particles.indexOf(particle), 1
+    particle.constructor.release particle
 
   getTime: -> new Date().valueOf()
 

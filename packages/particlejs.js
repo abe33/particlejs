@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, Emission, Impulse, Life, Limited, Live, Mixin, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Point, Ponctual, Poolable, Signal, System, requestAnimationFrame,
+  var BaseAction, ByRate, Emission, Impulse, Life, Limited, Live, MacroAction, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Point, Ponctual, Poolable, Signal, System, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -286,6 +286,81 @@
     };
 
     return Live;
+
+  })(BaseAction);
+
+  /* src/particlejs/actions/macro_action.coffee */;
+
+
+  /* src/particlejs/actions/macro_action.coffee<MacroAction> line:3 */;
+
+
+  MacroAction = (function(_super) {
+
+    __extends(MacroAction, _super);
+
+    /* src/particlejs/actions/macro_action.coffee<MacroAction::constructor> line:4 */;
+
+
+    function MacroAction(actions) {
+      this.actions = actions != null ? actions : [];
+    }
+
+    /* src/particlejs/actions/macro_action.coffee<MacroAction::prepare> line:5 */;
+
+
+    MacroAction.prototype.prepare = function(bias, biasInSeconds, time) {
+      var action, _i, _len, _ref, _results;
+      _ref = this.actions;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        action = _ref[_i];
+        _results.push(action.prepare(bias, biasInSeconds, time));
+      }
+      return _results;
+    };
+
+    /* src/particlejs/actions/macro_action.coffee<MacroAction::process> line:7 */;
+
+
+    MacroAction.prototype.process = function(particle) {
+      var action, _i, _len, _ref, _results;
+      _ref = this.actions;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        action = _ref[_i];
+        _results.push(action.process(particle));
+      }
+      return _results;
+    };
+
+    return MacroAction;
+
+  })(BaseAction);
+
+  /* src/particlejs/actions/move.coffee */;
+
+
+  /* src/particlejs/actions/move.coffee<Move> line:3 */;
+
+
+  Move = (function(_super) {
+
+    __extends(Move, _super);
+
+    function Move() {
+      return Move.__super__.constructor.apply(this, arguments);
+    }
+
+    /* src/particlejs/actions/move.coffee<Move::process> line:4 */;
+
+
+    Move.prototype.process = function(particle) {
+      particle.position.x += particle.velocity.x * this.biasInSeconds;
+      return particle.position.y += particle.velocity.y * this.biasInSeconds;
+    };
+
+    return Move;
 
   })(BaseAction);
 
@@ -824,10 +899,11 @@
 
     System.prototype.unregisterParticle = function(particle) {
       this.died.push(particle);
-      return this.particles.splice(this.particles.indexOf(particle), 1);
+      this.particles.splice(this.particles.indexOf(particle), 1);
+      return particle.constructor.release(particle);
     };
 
-    /* src/particlejs/system.coffee<System::getTime> line:95 */;
+    /* src/particlejs/system.coffee<System::getTime> line:96 */;
 
 
     System.prototype.getTime = function() {
@@ -913,6 +989,10 @@
   this.particlejs.BaseAction = BaseAction;
 
   this.particlejs.Live = Live;
+
+  this.particlejs.MacroAction = MacroAction;
+
+  this.particlejs.Move = Move;
 
   this.particlejs.NullAction = NullAction;
 
