@@ -1,9 +1,84 @@
 (function() {
-  var ByRate, Emission, Life, Limited, Mixin, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Point, Ponctual, Poolable,
+  var BaseAction, ByRate, Emission, Life, Limited, Live, Mixin, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Point, Ponctual, Poolable, System,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   this.particlejs || (this.particlejs = {});
+
+  /* src/particlejs/actions/base_action.coffee */;
+
+
+  /* src/particlejs/actions/base_action.coffee<BaseAction> line:2 */;
+
+
+  BaseAction = (function() {
+
+    function BaseAction() {}
+
+    /* src/particlejs/actions/base_action.coffee<BaseAction::prepare> line:3 */;
+
+
+    BaseAction.prototype.prepare = function(bias, biasInSeconds, time) {
+      this.bias = bias;
+      this.biasInSeconds = biasInSeconds;
+      this.time = time;
+    };
+
+    return BaseAction;
+
+  })();
+
+  /* src/particlejs/actions/live.coffee */;
+
+
+  /* src/particlejs/actions/live.coffee<Live> line:3 */;
+
+
+  Live = (function(_super) {
+
+    __extends(Live, _super);
+
+    function Live() {
+      return Live.__super__.constructor.apply(this, arguments);
+    }
+
+    /* src/particlejs/actions/live.coffee<Live::process> line:4 */;
+
+
+    Live.prototype.process = function(particle) {
+      particle.life += this.bias;
+      if (particle.life >= particle.maxLife) {
+        return particle.die();
+      }
+    };
+
+    return Live;
+
+  })(BaseAction);
+
+  /* src/particlejs/actions/null_action.coffee */;
+
+
+  /* src/particlejs/actions/null_action.coffee<NullAction> line:2 */;
+
+
+  NullAction = (function() {
+
+    function NullAction() {}
+
+    /* src/particlejs/actions/null_action.coffee<NullAction::prepare> line:3 */;
+
+
+    NullAction.prototype.prepare = function() {};
+
+    /* src/particlejs/actions/null_action.coffee<NullAction::process> line:4 */;
+
+
+    NullAction.prototype.process = function() {};
+
+    return NullAction;
+
+  })();
 
   /* src/particlejs/counters/by_rate.coffee */;
 
@@ -330,6 +405,24 @@
 
   })();
 
+  /* src/particlejs/system.coffee */;
+
+
+  /* src/particlejs/system.coffee<System> line:2 */;
+
+
+  System = (function() {
+    /* src/particlejs/system.coffee<System::constructor> line:3 */;
+
+    function System(initializer, action) {
+      this.initializer = initializer;
+      this.action = action;
+    }
+
+    return System;
+
+  })();
+
   /* src/particlejs/timers/limited.coffee */;
 
 
@@ -398,6 +491,12 @@
 
   })();
 
+  this.particlejs.BaseAction = BaseAction;
+
+  this.particlejs.Live = Live;
+
+  this.particlejs.NullAction = NullAction;
+
   this.particlejs.ByRate = ByRate;
 
   this.particlejs.NullCounter = NullCounter;
@@ -415,6 +514,8 @@
   this.particlejs.Poolable = Poolable;
 
   this.particlejs.Particle = Particle;
+
+  this.particlejs.System = System;
 
   this.particlejs.Limited = Limited;
 

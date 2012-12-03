@@ -11,4 +11,3 @@ global.emission = (source) ->
           break if n > max
 
         expect(n).toBe(times)
-
