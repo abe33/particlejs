@@ -218,16 +218,18 @@
 
 
     Impulse.prototype.run = function() {
-      var s, t;
+      var s, t, _ref;
+      this.stats != null;
       if (this.running) {
         t = this.getTime();
         s = (t - this.time) * this.timeScale;
         this.dispatch(s, s / 1000, t);
-        return this.initRun();
+        this.initRun();
       }
+      return (_ref = this.stats) != null ? _ref.end() : void 0;
     };
 
-    /* src/vendor/impulse.coffee<Impulse::getTime> line:45 */;
+    /* src/vendor/impulse.coffee<Impulse::getTime> line:49 */;
 
 
     Impulse.prototype.getTime = function() {

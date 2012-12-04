@@ -36,12 +36,16 @@ class Impulse extends Signal
     requestAnimationFrame => @run()
 
   run: ->
+    @stats?
+
     if @running
       t = @getTime()
       s = (t - @time) * @timeScale
 
       @dispatch s, s / 1000, t
       @initRun()
+
+    @stats?.end()
 
   getTime: ->
     new Date().getTime()
