@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, Emission, Impulse, Instant, Life, Limited, Live, MacroAction, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Signal, System, Unlimited, requestAnimationFrame,
+  var BaseAction, ByRate, Emission, Impulse, Instant, Life, Limited, Live, MacroAction, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Signal, Surface, System, Unlimited, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -581,6 +581,30 @@
 
   })();
 
+  /* src/particlejs/emitters/surface.coffee */;
+
+
+  /* src/particlejs/emitters/surface.coffee<Surface> line:2 */;
+
+
+  Surface = (function() {
+    /* src/particlejs/emitters/surface.coffee<Surface::constructor> line:3 */;
+
+    function Surface(surface) {
+      this.surface = surface;
+    }
+
+    /* src/particlejs/emitters/surface.coffee<Surface::get> line:5 */;
+
+
+    Surface.prototype.get = function() {
+      return this.surface.randomPointInSurface(this.random);
+    };
+
+    return Surface;
+
+  })();
+
   /* src/particlejs/initializers/life.coffee */;
 
 
@@ -1094,6 +1118,8 @@
   this.particlejs.Path = Path;
 
   this.particlejs.Ponctual = Ponctual;
+
+  this.particlejs.Surface = Surface;
 
   this.particlejs.Life = Life;
 
