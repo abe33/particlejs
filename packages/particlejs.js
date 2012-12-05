@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, Emission, Impulse, Instant, Life, Limited, Live, MacroAction, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Signal, Surface, System, Unlimited, requestAnimationFrame,
+  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Impulse, Instant, Life, Limited, Live, MacroAction, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Surface, System, Unlimited, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -538,13 +538,19 @@
 
 
   Path = (function() {
-    /* src/particlejs/emitters/path.coffee<Path::constructor> line:3 */;
 
-    function Path(path) {
+    Randomizable.attachTo(Path);
+
+    /* src/particlejs/emitters/path.coffee<Path::constructor> line:5 */;
+
+
+    function Path(path, random) {
       this.path = path;
+      this.random = random;
+      this.initRandom();
     }
 
-    /* src/particlejs/emitters/path.coffee<Path::get> line:5 */;
+    /* src/particlejs/emitters/path.coffee<Path::get> line:7 */;
 
 
     Path.prototype.get = function() {
@@ -588,13 +594,19 @@
 
 
   Surface = (function() {
-    /* src/particlejs/emitters/surface.coffee<Surface::constructor> line:3 */;
 
-    function Surface(surface) {
+    Randomizable.attachTo(Surface);
+
+    /* src/particlejs/emitters/surface.coffee<Surface::constructor> line:5 */;
+
+
+    function Surface(surface, random) {
       this.surface = surface;
+      this.random = random;
+      this.initRandom();
     }
 
-    /* src/particlejs/emitters/surface.coffee<Surface::get> line:5 */;
+    /* src/particlejs/emitters/surface.coffee<Surface::get> line:7 */;
 
 
     Surface.prototype.get = function() {
@@ -703,6 +715,37 @@
     };
 
     return Poolable;
+
+  })(Mixin);
+
+  /* src/particlejs/mixins/randomizable.coffee */;
+
+
+  Mixin = geomjs.Mixin;
+
+  Random = chancejs.Random, MathRandom = chancejs.MathRandom;
+
+  DEFAULT_RANDOM = new Random(new MathRandom);
+
+  /* src/particlejs/mixins/randomizable.coffee<Randomizable> line:7 */;
+
+
+  Randomizable = (function(_super) {
+
+    __extends(Randomizable, _super);
+
+    function Randomizable() {
+      return Randomizable.__super__.constructor.apply(this, arguments);
+    }
+
+    /* src/particlejs/mixins/randomizable.coffee<Randomizable::initRandom> line:8 */;
+
+
+    Randomizable.prototype.initRandom = function() {
+      return this.random || (this.random = DEFAULT_RANDOM);
+    };
+
+    return Randomizable;
 
   })(Mixin);
 
@@ -1126,6 +1169,8 @@
   this.particlejs.NullInitializer = NullInitializer;
 
   this.particlejs.Poolable = Poolable;
+
+  this.particlejs.Randomizable = Randomizable;
 
   this.particlejs.Particle = Particle;
 

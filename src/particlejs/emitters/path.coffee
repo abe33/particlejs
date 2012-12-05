@@ -1,7 +1,9 @@
-geomjs = require 'geomjs'
+Randomizable = require '../mixins/randomizable'
 
 class Path
-  constructor: (@path) ->
+  Randomizable.attachTo Path
+
+  constructor: (@path, @random) -> @initRandom()
 
   get: -> @path.pathPointAt @random.get()
 

@@ -1,6 +1,9 @@
+Randomizable = require '../mixins/randomizable'
 
 class Surface
-  constructor: (@surface) ->
+  Randomizable.attachTo Surface
+
+  constructor: (@surface, @random) -> @initRandom()
 
   get: -> @surface.randomPointInSurface @random
 
