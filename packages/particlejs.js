@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, Emission, Impulse, Life, Limited, Live, MacroAction, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Point, Ponctual, Poolable, Signal, System, requestAnimationFrame,
+  var BaseAction, ByRate, Emission, Impulse, Instant, Life, Limited, Live, MacroAction, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Signal, System, Unlimited, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -531,6 +531,30 @@
 
   })();
 
+  /* src/particlejs/emitters/path.coffee */;
+
+
+  /* src/particlejs/emitters/path.coffee<Path> line:2 */;
+
+
+  Path = (function() {
+    /* src/particlejs/emitters/path.coffee<Path::constructor> line:3 */;
+
+    function Path(path) {
+      this.path = path;
+    }
+
+    /* src/particlejs/emitters/path.coffee<Path::get> line:5 */;
+
+
+    Path.prototype.get = function() {
+      return this.path.pathPointAt(this.random.get());
+    };
+
+    return Path;
+
+  })();
+
   /* src/particlejs/emitters/ponctual.coffee */;
 
 
@@ -916,6 +940,39 @@
 
   })();
 
+  /* src/particlejs/timers/instant.coffee */;
+
+
+  /* src/particlejs/timers/instant.coffee<Instant> line:2 */;
+
+
+  Instant = (function() {
+
+    function Instant() {}
+
+    /* src/particlejs/timers/instant.coffee<Instant::prepare> line:3 */;
+
+
+    Instant.prototype.prepare = function() {};
+
+    /* src/particlejs/timers/instant.coffee<Instant::finished> line:4 */;
+
+
+    Instant.prototype.finished = function() {
+      return true;
+    };
+
+    /* src/particlejs/timers/instant.coffee<Instant::nextTime> line:5 */;
+
+
+    Instant.prototype.nextTime = function() {
+      return 0;
+    };
+
+    return Instant;
+
+  })();
+
   /* src/particlejs/timers/limited.coffee */;
 
 
@@ -984,6 +1041,34 @@
 
   })();
 
+  /* src/particlejs/timers/unlimited.coffee */;
+
+
+  /* src/particlejs/timers/unlimited.coffee<Unlimited> line:2 */;
+
+
+  Unlimited = (function(_super) {
+
+    __extends(Unlimited, _super);
+
+    /* src/particlejs/timers/unlimited.coffee<Unlimited::constructor> line:3 */;
+
+
+    function Unlimited(since) {
+      Unlimited.__super__.constructor.call(this, Infinity, since);
+    }
+
+    /* src/particlejs/timers/unlimited.coffee<Unlimited::finished> line:4 */;
+
+
+    Unlimited.prototype.finished = function() {
+      return false;
+    };
+
+    return Unlimited;
+
+  })(Limited);
+
   this.particlejs.Signal = Signal;
 
   this.particlejs.Impulse = Impulse;
@@ -1006,6 +1091,8 @@
 
   this.particlejs.NullEmitter = NullEmitter;
 
+  this.particlejs.Path = Path;
+
   this.particlejs.Ponctual = Ponctual;
 
   this.particlejs.Life = Life;
@@ -1018,8 +1105,12 @@
 
   this.particlejs.System = System;
 
+  this.particlejs.Instant = Instant;
+
   this.particlejs.Limited = Limited;
 
   this.particlejs.NullTimer = NullTimer;
+
+  this.particlejs.Unlimited = Unlimited;
 
 }).call(this);
