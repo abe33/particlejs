@@ -39,7 +39,7 @@ $(document).ready ->
     system.emit new particlejs.Emission(
       particlejs.Particle,
       new particlejs.Ponctual(new geomjs.Point(x, y)),
-      new particlejs.Limited(1000),
+      new particlejs.Unlimited(),
       new particlejs.ByRate(10),
       initialize: (particle) ->
         particle.velocity.x = 10 - Math.random() * 20
