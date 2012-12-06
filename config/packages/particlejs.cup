@@ -3,6 +3,7 @@ package: 'particlejs'
 includes: [
   'src/vendor/signal'
   'src/vendor/impulse'
+  'src/particlejs/mixins/*.coffee'
   'src/particlejs/**/*.coffee'
 ]
 operators: [
