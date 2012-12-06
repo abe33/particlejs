@@ -5,7 +5,7 @@ requestAnimationFrame = window?.requestAnimationFrame       or
                         window?.mozRequestAnimationFrame    or
                         window?.oRequestAnimationFrame      or
                         window?.msRequestAnimationFrame     or
-                        -> setTimeout callback, 1000 / 60
+                        (callback) -> setTimeout callback, 1000 / 60
 
 class Impulse extends Signal
   @instance: -> @_instance ||= new Impulse
