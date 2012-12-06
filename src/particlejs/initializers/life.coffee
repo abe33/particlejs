@@ -1,8 +1,16 @@
+Randomizable = require '../mixins/randomizable'
 
 class Life
-  constructor: (@life) ->
+  Randomizable.attachTo Life
+
+  constructor: (@lifeMin, @lifeMax, @random) ->
+    @lifeMax = @lifeMin unless @lifeMax?
+    @initRandom()
 
   initialize: (particle) ->
-    particle.maxLife = @life
+    if @lifeMin is @lifeMax
+      particle.maxLife = @lifeMin
+    else
+      particle.maxLife = @random.in @lifeMin, @lifeMax
 
 module.exports = Life

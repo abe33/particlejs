@@ -680,17 +680,31 @@
 
 
   Life = (function() {
-    /* src/particlejs/initializers/life.coffee<Life::constructor> line:3 */;
 
-    function Life(life) {
-      this.life = life;
+    Randomizable.attachTo(Life);
+
+    /* src/particlejs/initializers/life.coffee<Life::constructor> line:5 */;
+
+
+    function Life(lifeMin, lifeMax, random) {
+      this.lifeMin = lifeMin;
+      this.lifeMax = lifeMax;
+      this.random = random;
+      if (this.lifeMax == null) {
+        this.lifeMax = this.lifeMin;
+      }
+      this.initRandom();
     }
 
-    /* src/particlejs/initializers/life.coffee<Life::initialize> line:5 */;
+    /* src/particlejs/initializers/life.coffee<Life::initialize> line:9 */;
 
 
     Life.prototype.initialize = function(particle) {
-      return particle.maxLife = this.life;
+      if (this.lifeMin === this.lifeMax) {
+        return particle.maxLife = this.lifeMin;
+      } else {
+        return particle.maxLife = this.random["in"](this.lifeMin, this.lifeMax);
+      }
     };
 
     return Life;
