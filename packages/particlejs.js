@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Impulse, Instant, Life, Limited, Live, MacroAction, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Surface, System, Unlimited, requestAnimationFrame,
+  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Surface, System, Unlimited, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -418,6 +418,28 @@
 
   })();
 
+  /* src/particlejs/counters/fixed.coffee */;
+
+
+  /* src/particlejs/counters/fixed.coffee<Fixed> line:2 */;
+
+
+  Fixed = (function() {
+    /* src/particlejs/counters/fixed.coffee<Fixed::constructor> line:3 */;
+
+    function Fixed(count) {
+      this.count = count != null ? count : 1;
+    }
+
+    /* src/particlejs/counters/fixed.coffee<Fixed::prepare> line:4 */;
+
+
+    Fixed.prototype.prepare = function() {};
+
+    return Fixed;
+
+  })();
+
   /* src/particlejs/counters/null_counter.coffee */;
 
 
@@ -617,6 +639,40 @@
 
   })();
 
+  /* src/particlejs/initializers/explosion.coffee */;
+
+
+  /* src/particlejs/initializers/explosion.coffee<Explosion> line:2 */;
+
+
+  Explosion = (function() {
+
+    Randomizable.attachTo(Explosion);
+
+    function Explosion(velocityMin, velocityMax, angleMin, angleMax, random) {
+      this.velocityMin = velocityMin != null ? velocityMin : 0;
+      this.velocityMax = velocityMax != null ? velocityMax : 1;
+      this.angleMin = angleMin != null ? angleMin : 0;
+      this.angleMax = angleMax != null ? angleMax : Math.PI * 2;
+      this.random = random;
+      this.initRandom();
+    }
+
+    /* src/particlejs/initializers/explosion.coffee<Explosion::initialize> line:11 */;
+
+
+    Explosion.prototype.initialize = function(particle) {
+      var angle, velocity;
+      angle = this.random["in"](this.angleMin, this.angleMax);
+      velocity = this.random["in"](this.velocityMin, this.velocityMax);
+      particle.velocity.x = Math.cos(angle) * velocity;
+      return particle.velocity.y = Math.sin(angle) * velocity;
+    };
+
+    return Explosion;
+
+  })();
+
   /* src/particlejs/initializers/life.coffee */;
 
 
@@ -638,6 +694,37 @@
     };
 
     return Life;
+
+  })();
+
+  /* src/particlejs/initializers/macro_initializer.coffee */;
+
+
+  /* src/particlejs/initializers/macro_initializer.coffee<MacroInitializer> line:2 */;
+
+
+  MacroInitializer = (function() {
+    /* src/particlejs/initializers/macro_initializer.coffee<MacroInitializer::constructor> line:3 */;
+
+    function MacroInitializer(initializers) {
+      this.initializers = initializers;
+    }
+
+    /* src/particlejs/initializers/macro_initializer.coffee<MacroInitializer::initialize> line:5 */;
+
+
+    MacroInitializer.prototype.initialize = function(particle) {
+      var initializer, _i, _len, _ref, _results;
+      _ref = this.initializers;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        initializer = _ref[_i];
+        _results.push(initializer.initialize(particle));
+      }
+      return _results;
+    };
+
+    return MacroInitializer;
 
   })();
 
@@ -1152,6 +1239,8 @@
 
   this.particlejs.ByRate = ByRate;
 
+  this.particlejs.Fixed = Fixed;
+
   this.particlejs.NullCounter = NullCounter;
 
   this.particlejs.Emission = Emission;
@@ -1164,7 +1253,11 @@
 
   this.particlejs.Surface = Surface;
 
+  this.particlejs.Explosion = Explosion;
+
   this.particlejs.Life = Life;
+
+  this.particlejs.MacroInitializer = MacroInitializer;
 
   this.particlejs.NullInitializer = NullInitializer;
 
