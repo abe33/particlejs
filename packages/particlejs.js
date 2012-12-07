@@ -447,6 +447,8 @@
 
 
     Move.prototype.process = function(particle) {
+      particle.lastPosition.x = particle.position.x;
+      particle.lastPosition.y = particle.position.y;
       particle.position.x += particle.velocity.x * this.biasInSeconds;
       return particle.position.y += particle.velocity.y * this.biasInSeconds;
     };
