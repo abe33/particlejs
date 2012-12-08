@@ -1,6 +1,6 @@
-geomjs = require 'geomjs'
+mixinsjs = require 'mixinsjs'
 
-{Mixin} = geomjs
+{Mixin} = mixinsjs
 
 class Poolable extends Mixin
   @included: (klass) ->

@@ -14,8 +14,9 @@
   },
   "dependencies": {
     "neat": "0.0.74",
-    "chancejs": "0.0.6",
-    "geomjs": "0.0.3"
+    "mixinsjs": "0.1.2",
+    "chancejs": "0.0.8",
+    "geomjs": "0.0.5"
   },
   "devDependencies": {
     "jasmine-node": "*"

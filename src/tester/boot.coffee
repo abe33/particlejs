@@ -41,8 +41,7 @@ $(document).ready ->
       new particlejs.Ponctual(new geomjs.Point(x, y)),
       new particlejs.Unlimited(),
       new particlejs.ByRate(10),
-      initialize: (particle) ->
-        particle.velocity.x = 10 - Math.random() * 20
-        particle.velocity.y = 10 - Math.random() * 20
+      new particlejs.Explosion(10,20)
+      # new particlejs.Stream(new geomjs.Point(1,-1),5,10,0.2)
     )
 

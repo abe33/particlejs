@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Surface, System, Unlimited, requestAnimationFrame,
+  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Stream, Surface, System, Unlimited, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -243,7 +243,7 @@
   /* src/particlejs/mixins/poolable.coffee */;
 
 
-  Mixin = geomjs.Mixin;
+  Mixin = mixinsjs.Mixin;
 
   /* src/particlejs/mixins/poolable.coffee<Poolable> line:4 */;
 
@@ -301,7 +301,7 @@
   /* src/particlejs/mixins/randomizable.coffee */;
 
 
-  Mixin = geomjs.Mixin;
+  Mixin = mixinsjs.Mixin;
 
   Random = chancejs.Random, MathRandom = chancejs.MathRandom;
 
@@ -852,6 +852,134 @@
 
   })();
 
+  /* src/particlejs/initializers/stream.coffee */;
+
+
+  Point = geomjs.Point;
+
+  /* src/particlejs/initializers/stream.coffee<Stream> line:4 */;
+
+
+  Stream = (function() {
+
+    Randomizable.attachTo(Stream);
+
+    function Stream(direction, velocityMin, velocityMax, angleRandom, random) {
+      this.direction = direction != null ? direction : new Point(1, 1);
+      this.velocityMin = velocityMin != null ? velocityMin : 0;
+      this.velocityMax = velocityMax != null ? velocityMax : 1;
+      this.angleRandom = angleRandom != null ? angleRandom : 0;
+      this.random = random;
+      this.initRandom();
+    }
+
+    /* src/particlejs/initializers/stream.coffee<Stream::initialize> line:13 */;
+
+
+    Stream.prototype.initialize = function(particle) {
+      var angle, velocity;
+      velocity = this.random["in"](this.velocityMin, this.velocityMax);
+      angle = this.direction.angle();
+      if (this.angleRandom !== 0) {
+        angle += this.random.pad(this.angleRandom);
+      }
+      particle.velocity.x = Math.cos(angle) * velocity;
+      return particle.velocity.y = Math.sin(angle) * velocity;
+    };
+
+    return Stream;
+
+  })();
+
+  /* src/particlejs/mixins/poolable.coffee */;
+
+
+  Mixin = mixinsjs.Mixin;
+
+  /* src/particlejs/mixins/poolable.coffee<Poolable> line:4 */;
+
+
+  Poolable = (function(_super) {
+
+    __extends(Poolable, _super);
+
+    function Poolable() {
+      return Poolable.__super__.constructor.apply(this, arguments);
+    }
+
+    /* src/particlejs/mixins/poolable.coffee<Poolable.included> line:5 */;
+
+
+    Poolable.included = function(klass) {
+      klass.resetPools = function() {
+        this.allocated = [];
+        return this.pooled = [];
+      };
+      klass.get = function(defaults) {
+        var instance, k, v;
+        if (defaults == null) {
+          defaults = {};
+        }
+        if (this.pooled.length > 0) {
+          instance = this.pooled.shift();
+        } else {
+          instance = new klass;
+        }
+        if (typeof instance.init === "function") {
+          instance.init();
+        }
+        for (k in defaults) {
+          v = defaults[k];
+          instance[k] = v;
+        }
+        this.allocated.push(instance);
+        return instance;
+      };
+      klass.release = function(instance) {
+        var index;
+        index = this.allocated.indexOf(instance);
+        instance.dispose();
+        this.allocated.splice(index, 1);
+        return this.pooled.push(instance);
+      };
+      return klass.resetPools();
+    };
+
+    return Poolable;
+
+  })(Mixin);
+
+  /* src/particlejs/mixins/randomizable.coffee */;
+
+
+  Mixin = mixinsjs.Mixin;
+
+  Random = chancejs.Random, MathRandom = chancejs.MathRandom;
+
+  DEFAULT_RANDOM = new Random(new MathRandom);
+
+  /* src/particlejs/mixins/randomizable.coffee<Randomizable> line:7 */;
+
+
+  Randomizable = (function(_super) {
+
+    __extends(Randomizable, _super);
+
+    function Randomizable() {
+      return Randomizable.__super__.constructor.apply(this, arguments);
+    }
+
+    /* src/particlejs/mixins/randomizable.coffee<Randomizable::initRandom> line:8 */;
+
+
+    Randomizable.prototype.initRandom = function() {
+      return this.random || (this.random = DEFAULT_RANDOM);
+    };
+
+    return Randomizable;
+
+  })(Mixin);
+
   /* src/particlejs/particle.coffee */;
 
 
@@ -1280,6 +1408,12 @@
   this.particlejs.MacroInitializer = MacroInitializer;
 
   this.particlejs.NullInitializer = NullInitializer;
+
+  this.particlejs.Stream = Stream;
+
+  this.particlejs.Poolable = Poolable;
+
+  this.particlejs.Randomizable = Randomizable;
 
   this.particlejs.Particle = Particle;
 
