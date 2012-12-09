@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Force, Friction, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Stream, SubSystem, Surface, System, Unlimited, requestAnimationFrame,
+  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Force, Friction, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Stream, SubSystem, Surface, System, Unlimited, UntilDeath, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -1151,6 +1151,30 @@
 
   })();
 
+  /* src/particlejs/initializers/particle_sub_system.coffee */;
+
+
+  /* src/particlejs/initializers/particle_sub_system.coffee<ParticleSubSystem> line:3 */;
+
+
+  ParticleSubSystem = (function() {
+    /* src/particlejs/initializers/particle_sub_system.coffee<ParticleSubSystem::constructor> line:4 */;
+
+    function ParticleSubSystem(initializer, action, emissionFactory, subSystem) {
+      this.subSystem = new SubSystem(initializer, action, emissionFactory, subSystem);
+    }
+
+    /* src/particlejs/initializers/particle_sub_system.coffee<ParticleSubSystem::initialize> line:9 */;
+
+
+    ParticleSubSystem.prototype.initialize = function(particle) {
+      return this.subSystem.emitFor(particle);
+    };
+
+    return ParticleSubSystem;
+
+  })();
+
   /* src/particlejs/initializers/stream.coffee */;
 
 
@@ -1214,7 +1238,7 @@
       this.position = new Point;
       this.lastPosition = new Point;
       this.velocity = new Point;
-      return this.parasites = {};
+      return this.parasite = {};
     };
 
     /* src/particlejs/particle.coffee<Particle::dispose> line:16 */;
@@ -1224,7 +1248,7 @@
       this.position = null;
       this.lastPosition = null;
       this.velocity = null;
-      return this.parasites = null;
+      return this.parasite = null;
     };
 
     /* src/particlejs/particle.coffee<Particle::die> line:22 */;
@@ -1610,6 +1634,37 @@
 
   })(Limited);
 
+  /* src/particlejs/timers/until_death.coffee */;
+
+
+  /* src/particlejs/timers/until_death.coffee<UntilDeath> line:2 */;
+
+
+  UntilDeath = (function() {
+    /* src/particlejs/timers/until_death.coffee<UntilDeath::constructor> line:3 */;
+
+    function UntilDeath(particle) {
+      this.particle = particle;
+    }
+
+    /* src/particlejs/timers/until_death.coffee<UntilDeath::prepare> line:5 */;
+
+
+    UntilDeath.prototype.prepare = function(bias, biasInSeconds, time) {
+      return this.nextTime = bias;
+    };
+
+    /* src/particlejs/timers/until_death.coffee<UntilDeath::finished> line:6 */;
+
+
+    UntilDeath.prototype.finished = function() {
+      return this.particle.dead;
+    };
+
+    return UntilDeath;
+
+  })();
+
   this.particlejs.Signal = Signal;
 
   this.particlejs.Impulse = Impulse;
@@ -1660,6 +1715,8 @@
 
   this.particlejs.NullInitializer = NullInitializer;
 
+  this.particlejs.ParticleSubSystem = ParticleSubSystem;
+
   this.particlejs.Stream = Stream;
 
   this.particlejs.Particle = Particle;
@@ -1675,5 +1732,7 @@
   this.particlejs.NullTimer = NullTimer;
 
   this.particlejs.Unlimited = Unlimited;
+
+  this.particlejs.UntilDeath = UntilDeath;
 
 }).call(this);
