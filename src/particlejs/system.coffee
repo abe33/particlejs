@@ -4,7 +4,8 @@ NullInitializer = require './initializers/null_initializer'
 NullAction = require './actions/null_action'
 
 class System
-  constructor: (@initializer=new NullInitializer, @action= new NullAction) ->
+  constructor: (@initializer=new NullInitializer,
+                @action= new NullAction, @subSystem) ->
     @particlesCreated = new Signal
     @particlesDied = new Signal
     @emissionStarted = new Signal
@@ -94,6 +95,7 @@ class System
 
   unregisterParticle: (particle) ->
     @died.push particle
+    @subSystem?.emitFor particle
     @particles.splice @particles.indexOf(particle), 1
     particle.constructor.release particle
 

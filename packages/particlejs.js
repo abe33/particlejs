@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Stream, Surface, System, Unlimited, requestAnimationFrame,
+  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Force, Friction, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Stream, SubSystem, Surface, System, Unlimited, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -218,18 +218,20 @@
 
 
     Impulse.prototype.run = function() {
-      var s, t, _ref;
-      this.stats != null;
+      var s, t, _ref, _ref1;
       if (this.running) {
+        if ((_ref = this.stats) != null) {
+          _ref.begin();
+        }
         t = this.getTime();
         s = (t - this.time) * this.timeScale;
         this.dispatch(s, s / 1000, t);
         this.initRun();
+        return (_ref1 = this.stats) != null ? _ref1.end() : void 0;
       }
-      return (_ref = this.stats) != null ? _ref.end() : void 0;
     };
 
-    /* src/vendor/impulse.coffee<Impulse::getTime> line:49 */;
+    /* src/vendor/impulse.coffee<Impulse::getTime> line:47 */;
 
 
     Impulse.prototype.getTime = function() {
@@ -239,6 +241,240 @@
     return Impulse;
 
   })(Signal);
+
+  /* src/particlejs/system.coffee */;
+
+
+  /* src/particlejs/system.coffee<System> line:2 */;
+
+
+  System = (function() {
+
+    function System(initializer, action, subSystem) {
+      this.initializer = initializer != null ? initializer : new NullInitializer;
+      this.action = action != null ? action : new NullAction;
+      this.subSystem = subSystem;
+      this.particlesCreated = new Signal;
+      this.particlesDied = new Signal;
+      this.emissionStarted = new Signal;
+      this.emissionFinished = new Signal;
+      this.particles = [];
+      this.emissions = [];
+    }
+
+    /* src/particlejs/system.coffee<System::emit> line:12 */;
+
+
+    System.prototype.emit = function(emission) {
+      this.emissions.push(emission);
+      emission.system = this;
+      return this.startEmission(emission);
+    };
+
+    /* src/particlejs/system.coffee<System::startEmission> line:17 */;
+
+
+    System.prototype.startEmission = function(emission) {
+      emission.prepare(0, 0, this.getTime());
+      this.created = [];
+      this.died = [];
+      if (!this.running) {
+        this.start();
+      }
+      this.processEmission(emission);
+      this.emissionStarted.dispatch(this, emission);
+      if (this.created.length > 0) {
+        this.particlesCreated.dispatch(this, this.created);
+      }
+      if (this.died.length > 0) {
+        this.particlesDied.dispatch(this, this.died);
+      }
+      this.died = null;
+      return this.created = null;
+    };
+
+    /* src/particlejs/system.coffee<System::start> line:32 */;
+
+
+    System.prototype.start = function() {
+      if (!this.running) {
+        Impulse.instance().add(this.tick, this);
+        return this.running = true;
+      }
+    };
+
+    /* src/particlejs/system.coffee<System::stop> line:37 */;
+
+
+    System.prototype.stop = function() {
+      if (this.running) {
+        Impulse.instance().remove(this.tick, this);
+        return this.running = false;
+      }
+    };
+
+    /* src/particlejs/system.coffee<System::tick> line:42 */;
+
+
+    System.prototype.tick = function(bias, biasInSeconds, time) {
+      this.died = [];
+      this.created = [];
+      this.processParticles(bias, biasInSeconds, time);
+      if (this.emitting()) {
+        this.processEmissions(bias, biasInSeconds, time);
+      }
+      if (this.created.length > 0) {
+        this.particlesCreated.dispatch(this, this.created);
+      }
+      if (this.died.length > 0) {
+        this.particlesDied.dispatch(this, this.died);
+      }
+      this.died = null;
+      return this.created = null;
+    };
+
+    /* src/particlejs/system.coffee<System::emitting> line:55 */;
+
+
+    System.prototype.emitting = function() {
+      return this.emissions.length > 0;
+    };
+
+    /* src/particlejs/system.coffee<System::processEmissions> line:57 */;
+
+
+    System.prototype.processEmissions = function(bias, biasInSeconds, time) {
+      var emission, _i, _len, _ref, _results;
+      _ref = this.emissions.concat();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        emission = _ref[_i];
+        emission.prepare(bias, biasInSeconds, time);
+        _results.push(this.processEmission(emission));
+      }
+      return _results;
+    };
+
+    /* src/particlejs/system.coffee<System::processEmission> line:62 */;
+
+
+    System.prototype.processEmission = function(emission) {
+      var particle, time, _results;
+      _results = [];
+      while (emission.hasNext()) {
+        time = emission.nextTime();
+        particle = emission.next();
+        this.created.push(particle);
+        this.registerParticle(particle);
+        this.initializeParticle(particle, time);
+        if (emission.finished()) {
+          this.removeEmission(emission);
+          _results.push(this.emissionFinished.dispatch(this, emission));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    /* src/particlejs/system.coffee<System::removeEmission> line:73 */;
+
+
+    System.prototype.removeEmission = function(emission) {
+      return this.emissions.splice(this.emissions.indexOf(emission), 1);
+    };
+
+    /* src/particlejs/system.coffee<System::processParticles> line:76 */;
+
+
+    System.prototype.processParticles = function(bias, biasInSeconds, time) {
+      var particle, _i, _len, _ref, _results;
+      this.action.prepare(bias, biasInSeconds, time);
+      _ref = this.particles.concat();
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        particle = _ref[_i];
+        this.action.process(particle);
+        if (particle.dead) {
+          _results.push(this.unregisterParticle(particle));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    };
+
+    /* src/particlejs/system.coffee<System::initializeParticle> line:82 */;
+
+
+    System.prototype.initializeParticle = function(particle, time) {
+      this.initializer.initialize(particle);
+      this.action.prepare(time, time / 1000, this.getTime());
+      this.action.process(particle);
+      if (particle.dead) {
+        return this.unregisterParticle(particle);
+      }
+    };
+
+    /* src/particlejs/system.coffee<System::registerParticle> line:89 */;
+
+
+    System.prototype.registerParticle = function(particle) {
+      return this.particles.push(particle);
+    };
+
+    /* src/particlejs/system.coffee<System::unregisterParticle> line:92 */;
+
+
+    System.prototype.unregisterParticle = function(particle) {
+      var _ref;
+      this.died.push(particle);
+      if ((_ref = this.subSystem) != null) {
+        _ref.emitFor(particle);
+      }
+      this.particles.splice(this.particles.indexOf(particle), 1);
+      return particle.constructor.release(particle);
+    };
+
+    /* src/particlejs/system.coffee<System::getTime> line:98 */;
+
+
+    System.prototype.getTime = function() {
+      return new Date().valueOf();
+    };
+
+    return System;
+
+  })();
+
+  /* src/particlejs/sub_system.coffee */;
+
+
+  /* src/particlejs/sub_system.coffee<SubSystem> line:2 */;
+
+
+  SubSystem = (function(_super) {
+
+    __extends(SubSystem, _super);
+
+    /* src/particlejs/sub_system.coffee<SubSystem::constructor> line:3 */;
+
+
+    function SubSystem(initializer, action, emissionFactory, subSystem) {
+      this.emissionFactory = emissionFactory;
+      SubSystem.__super__.constructor.call(this, initializer, action, subSystem);
+    }
+
+    /* src/particlejs/sub_system.coffee<SubSystem::emitFor> line:6 */;
+
+
+    SubSystem.prototype.emitFor = function(particle) {
+      return this.emit(this.emissionFactory(particle));
+    };
+
+    return SubSystem;
+
+  })(System);
 
   /* src/particlejs/mixins/poolable.coffee */;
 
@@ -351,6 +587,69 @@
     return BaseAction;
 
   })();
+
+  /* src/particlejs/actions/force.coffee */;
+
+
+  Point = geomjs;
+
+  /* src/particlejs/actions/force.coffee<Force> line:5 */;
+
+
+  Force = (function(_super) {
+
+    __extends(Force, _super);
+
+    /* src/particlejs/actions/force.coffee<Force::constructor> line:6 */;
+
+
+    function Force(vector) {
+      this.vector = vector != null ? vector : new Point;
+    }
+
+    /* src/particlejs/actions/force.coffee<Force::process> line:7 */;
+
+
+    Force.prototype.process = function(particle) {
+      particle.velocity.x += this.vector.x * this.biasInSeconds;
+      return particle.velocity.y += this.vector.y * this.biasInSeconds;
+    };
+
+    return Force;
+
+  })(BaseAction);
+
+  /* src/particlejs/actions/friction.coffee */;
+
+
+  /* src/particlejs/actions/friction.coffee<Friction> line:2 */;
+
+
+  Friction = (function(_super) {
+
+    __extends(Friction, _super);
+
+    /* src/particlejs/actions/friction.coffee<Friction::constructor> line:3 */;
+
+
+    function Friction(amount) {
+      this.amount = amount != null ? amount : 1;
+    }
+
+    /* src/particlejs/actions/friction.coffee<Friction::process> line:4 */;
+
+
+    Friction.prototype.process = function(particle) {
+      var fx, fy;
+      fx = particle.velocity.x * this.biasInSeconds * this.amount;
+      fy = particle.velocity.y * this.biasInSeconds * this.amount;
+      particle.velocity.x -= fx;
+      return particle.velocity.y -= fy;
+    };
+
+    return Friction;
+
+  })(BaseAction);
 
   /* src/particlejs/actions/live.coffee */;
 
@@ -891,95 +1190,6 @@
 
   })();
 
-  /* src/particlejs/mixins/poolable.coffee */;
-
-
-  Mixin = mixinsjs.Mixin;
-
-  /* src/particlejs/mixins/poolable.coffee<Poolable> line:4 */;
-
-
-  Poolable = (function(_super) {
-
-    __extends(Poolable, _super);
-
-    function Poolable() {
-      return Poolable.__super__.constructor.apply(this, arguments);
-    }
-
-    /* src/particlejs/mixins/poolable.coffee<Poolable.included> line:5 */;
-
-
-    Poolable.included = function(klass) {
-      klass.resetPools = function() {
-        this.allocated = [];
-        return this.pooled = [];
-      };
-      klass.get = function(defaults) {
-        var instance, k, v;
-        if (defaults == null) {
-          defaults = {};
-        }
-        if (this.pooled.length > 0) {
-          instance = this.pooled.shift();
-        } else {
-          instance = new klass;
-        }
-        if (typeof instance.init === "function") {
-          instance.init();
-        }
-        for (k in defaults) {
-          v = defaults[k];
-          instance[k] = v;
-        }
-        this.allocated.push(instance);
-        return instance;
-      };
-      klass.release = function(instance) {
-        var index;
-        index = this.allocated.indexOf(instance);
-        instance.dispose();
-        this.allocated.splice(index, 1);
-        return this.pooled.push(instance);
-      };
-      return klass.resetPools();
-    };
-
-    return Poolable;
-
-  })(Mixin);
-
-  /* src/particlejs/mixins/randomizable.coffee */;
-
-
-  Mixin = mixinsjs.Mixin;
-
-  Random = chancejs.Random, MathRandom = chancejs.MathRandom;
-
-  DEFAULT_RANDOM = new Random(new MathRandom);
-
-  /* src/particlejs/mixins/randomizable.coffee<Randomizable> line:7 */;
-
-
-  Randomizable = (function(_super) {
-
-    __extends(Randomizable, _super);
-
-    function Randomizable() {
-      return Randomizable.__super__.constructor.apply(this, arguments);
-    }
-
-    /* src/particlejs/mixins/randomizable.coffee<Randomizable::initRandom> line:8 */;
-
-
-    Randomizable.prototype.initRandom = function() {
-      return this.random || (this.random = DEFAULT_RANDOM);
-    };
-
-    return Randomizable;
-
-  })(Mixin);
-
   /* src/particlejs/particle.coffee */;
 
 
@@ -1037,6 +1247,35 @@
 
   })();
 
+  /* src/particlejs/sub_system.coffee */;
+
+
+  /* src/particlejs/sub_system.coffee<SubSystem> line:2 */;
+
+
+  SubSystem = (function(_super) {
+
+    __extends(SubSystem, _super);
+
+    /* src/particlejs/sub_system.coffee<SubSystem::constructor> line:3 */;
+
+
+    function SubSystem(initializer, action, emissionFactory, subSystem) {
+      this.emissionFactory = emissionFactory;
+      SubSystem.__super__.constructor.call(this, initializer, action, subSystem);
+    }
+
+    /* src/particlejs/sub_system.coffee<SubSystem::emitFor> line:6 */;
+
+
+    SubSystem.prototype.emitFor = function(particle) {
+      return this.emit(this.emissionFactory(particle));
+    };
+
+    return SubSystem;
+
+  })(System);
+
   /* src/particlejs/system.coffee */;
 
 
@@ -1044,11 +1283,11 @@
 
 
   System = (function() {
-    /* src/particlejs/system.coffee<System::constructor> line:3 */;
 
-    function System(initializer, action) {
+    function System(initializer, action, subSystem) {
       this.initializer = initializer != null ? initializer : new NullInitializer;
       this.action = action != null ? action : new NullAction;
+      this.subSystem = subSystem;
       this.particlesCreated = new Signal;
       this.particlesDied = new Signal;
       this.emissionStarted = new Signal;
@@ -1057,7 +1296,7 @@
       this.emissions = [];
     }
 
-    /* src/particlejs/system.coffee<System::emit> line:11 */;
+    /* src/particlejs/system.coffee<System::emit> line:12 */;
 
 
     System.prototype.emit = function(emission) {
@@ -1066,7 +1305,7 @@
       return this.startEmission(emission);
     };
 
-    /* src/particlejs/system.coffee<System::startEmission> line:16 */;
+    /* src/particlejs/system.coffee<System::startEmission> line:17 */;
 
 
     System.prototype.startEmission = function(emission) {
@@ -1088,7 +1327,7 @@
       return this.created = null;
     };
 
-    /* src/particlejs/system.coffee<System::start> line:31 */;
+    /* src/particlejs/system.coffee<System::start> line:32 */;
 
 
     System.prototype.start = function() {
@@ -1098,7 +1337,7 @@
       }
     };
 
-    /* src/particlejs/system.coffee<System::stop> line:36 */;
+    /* src/particlejs/system.coffee<System::stop> line:37 */;
 
 
     System.prototype.stop = function() {
@@ -1108,7 +1347,7 @@
       }
     };
 
-    /* src/particlejs/system.coffee<System::tick> line:41 */;
+    /* src/particlejs/system.coffee<System::tick> line:42 */;
 
 
     System.prototype.tick = function(bias, biasInSeconds, time) {
@@ -1128,14 +1367,14 @@
       return this.created = null;
     };
 
-    /* src/particlejs/system.coffee<System::emitting> line:54 */;
+    /* src/particlejs/system.coffee<System::emitting> line:55 */;
 
 
     System.prototype.emitting = function() {
       return this.emissions.length > 0;
     };
 
-    /* src/particlejs/system.coffee<System::processEmissions> line:56 */;
+    /* src/particlejs/system.coffee<System::processEmissions> line:57 */;
 
 
     System.prototype.processEmissions = function(bias, biasInSeconds, time) {
@@ -1150,7 +1389,7 @@
       return _results;
     };
 
-    /* src/particlejs/system.coffee<System::processEmission> line:61 */;
+    /* src/particlejs/system.coffee<System::processEmission> line:62 */;
 
 
     System.prototype.processEmission = function(emission) {
@@ -1172,14 +1411,14 @@
       return _results;
     };
 
-    /* src/particlejs/system.coffee<System::removeEmission> line:72 */;
+    /* src/particlejs/system.coffee<System::removeEmission> line:73 */;
 
 
     System.prototype.removeEmission = function(emission) {
       return this.emissions.splice(this.emissions.indexOf(emission), 1);
     };
 
-    /* src/particlejs/system.coffee<System::processParticles> line:75 */;
+    /* src/particlejs/system.coffee<System::processParticles> line:76 */;
 
 
     System.prototype.processParticles = function(bias, biasInSeconds, time) {
@@ -1199,7 +1438,7 @@
       return _results;
     };
 
-    /* src/particlejs/system.coffee<System::initializeParticle> line:81 */;
+    /* src/particlejs/system.coffee<System::initializeParticle> line:82 */;
 
 
     System.prototype.initializeParticle = function(particle, time) {
@@ -1211,23 +1450,27 @@
       }
     };
 
-    /* src/particlejs/system.coffee<System::registerParticle> line:88 */;
+    /* src/particlejs/system.coffee<System::registerParticle> line:89 */;
 
 
     System.prototype.registerParticle = function(particle) {
       return this.particles.push(particle);
     };
 
-    /* src/particlejs/system.coffee<System::unregisterParticle> line:91 */;
+    /* src/particlejs/system.coffee<System::unregisterParticle> line:92 */;
 
 
     System.prototype.unregisterParticle = function(particle) {
+      var _ref;
       this.died.push(particle);
+      if ((_ref = this.subSystem) != null) {
+        _ref.emitFor(particle);
+      }
       this.particles.splice(this.particles.indexOf(particle), 1);
       return particle.constructor.release(particle);
     };
 
-    /* src/particlejs/system.coffee<System::getTime> line:96 */;
+    /* src/particlejs/system.coffee<System::getTime> line:98 */;
 
 
     System.prototype.getTime = function() {
@@ -1371,11 +1614,19 @@
 
   this.particlejs.Impulse = Impulse;
 
+  this.particlejs.System = System;
+
+  this.particlejs.SubSystem = SubSystem;
+
   this.particlejs.Poolable = Poolable;
 
   this.particlejs.Randomizable = Randomizable;
 
   this.particlejs.BaseAction = BaseAction;
+
+  this.particlejs.Force = Force;
+
+  this.particlejs.Friction = Friction;
 
   this.particlejs.Live = Live;
 
@@ -1411,11 +1662,9 @@
 
   this.particlejs.Stream = Stream;
 
-  this.particlejs.Poolable = Poolable;
-
-  this.particlejs.Randomizable = Randomizable;
-
   this.particlejs.Particle = Particle;
+
+  this.particlejs.SubSystem = SubSystem;
 
   this.particlejs.System = System;
 

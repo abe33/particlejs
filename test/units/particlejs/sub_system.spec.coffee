@@ -9,23 +9,24 @@ Life = require '../../../lib/particlejs/initializers/life'
 Live = require '../../../lib/particlejs/actions/live'
 Emission = require '../../../lib/particlejs/emission'
 
-System = require '../../../lib/particlejs/system'
 SubSystem = require '../../../lib/particlejs/sub_system'
 
-describe 'System,', ->
+describe 'SubSystem,', ->
   source = 'system'
-  subSource = 'subSystem'
   describe 'when instanciated with all its components,', ->
 
     beforeEach ->
       @initializer = initializer = new Life 1000
       @action = action = new Live
-      @subSystem = subSystem = new SubSystem initializer, action, (p) ->
-        new Emission( Particle,
-                      new Ponctual(p.position),
-                      new Limited(1000,100),
-                      new ByRate(10) )
-      @system = new System(initializer, action, subSystem)
+      @system = new SubSystem(
+        initializer,
+        action,
+        (particle) ->
+          new Emission( Particle,
+                        new Ponctual(particle.position.clone()),
+                        new Limited(1000,100),
+                        new ByRate(10) )
+      )
 
     createListener()
 
@@ -42,14 +43,14 @@ describe 'System,', ->
     system(source).shouldHave(0).particles()
     system(source).shouldHave(0).emissions()
 
-    describe 'when its emit method is called', ->
-      describe 'with an emission whose timer have since defined,', ->
+    describe 'when its emitFor method is called', ->
+      describe 'with a particle', ->
         beforeEach ->
-          @emission = new Emission( Particle,
-                                    new Ponctual(new Point),
-                                    new Limited(1000,100),
-                                    new ByRate(10) )
-          @system.emit @emission
+          @source = new Particle
+          @source.init()
+          @source.position.x = 10
+          @source.position.y = 10
+          @system.emitFor @source
           @particle = @system.particles[0]
 
         afterEach -> @system.stop()
@@ -61,8 +62,6 @@ describe 'System,', ->
         system(source).shouldHave().started()
         system(source).should.emitting()
 
-
-        emission('emission').system.shouldBe(source)
         particle('particle').maxLife.shouldBe(1000)
         particle('particle').life.shouldBe(100)
 
@@ -74,9 +73,6 @@ describe 'System,', ->
           system(source).shouldHave(0).emissions()
           system(source).shouldHave().dispatched('emissionFinished')
           system(source).shouldHave().dispatched('particlesDied')
-
-          system(subSource).shouldHave(2).particles()
-          system(subSource).shouldHave(2).emissions()
 
         describe 'when adding a second emission after some time,', ->
           beforeEach ->

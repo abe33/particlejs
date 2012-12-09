@@ -4,6 +4,8 @@ includes: [
   'src/vendor/signal'
   'src/vendor/impulse'
   'src/particlejs/mixins/*.coffee'
+  'src/particlejs/system'
+  'src/particlejs/sub_system'
   'src/particlejs/**/*.coffee'
 ]
 operators: [
