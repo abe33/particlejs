@@ -1,5 +1,5 @@
 (function() {
-  var BaseAction, ByRate, DEFAULT_RANDOM, Emission, Explosion, Fixed, Force, Friction, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Stream, SubSystem, Surface, System, Unlimited, UntilDeath, requestAnimationFrame,
+  var BaseAction, ByRate, DEFAULT_RANDOM, DieOnSurface, Emission, Explosion, Fixed, Force, Friction, Impulse, Instant, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, Random, Randomizable, Signal, Stream, SubSystem, Surface, System, Unlimited, UntilDeath, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -585,6 +585,45 @@
     };
 
     return BaseAction;
+
+  })();
+
+  /* src/particlejs/actions/die_on_surface.coffee */;
+
+
+  /* src/particlejs/actions/die_on_surface.coffee<DieOnSurface> line:2 */;
+
+
+  DieOnSurface = (function() {
+    /* src/particlejs/actions/die_on_surface.coffee<DieOnSurface::constructor> line:3 */;
+
+    function DieOnSurface(surfaces) {
+      this.surfaces = surfaces;
+      if (Object.prototype.toString.call(this.surface).indexOf('Array') === -1) {
+        this.surfaces = [this.surfaces];
+      }
+    }
+
+    /* src/particlejs/actions/die_on_surface.coffee<DieOnSurface::prepare> line:7 */;
+
+
+    DieOnSurface.prototype.prepare = function() {};
+
+    /* src/particlejs/actions/die_on_surface.coffee<DieOnSurface::process> line:8 */;
+
+
+    DieOnSurface.prototype.process = function(p) {
+      var surface, _i, _len, _ref;
+      _ref = this.surfaces;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        surface = _ref[_i];
+        if (surface.contains(p.position)) {
+          return p.die();
+        }
+      }
+    };
+
+    return DieOnSurface;
 
   })();
 
@@ -1681,6 +1720,8 @@
   this.particlejs.Randomizable = Randomizable;
 
   this.particlejs.BaseAction = BaseAction;
+
+  this.particlejs.DieOnSurface = DieOnSurface;
 
   this.particlejs.Force = Force;
 
