@@ -15,7 +15,7 @@ describe 'ByRate', ->
     describe 'when its prepare method is called', ->
       beforeEach -> @counter.prepare 510, 0.51, 510
 
-      counter(source).count.shouldBe(5)
+      counter(source).count.shouldBe(6)
       byRateCounter(source).rest.shouldBe(0.1)
 
 

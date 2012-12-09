@@ -29,10 +29,10 @@ describe 'Emission', ->
       beforeEach -> @emission.prepare 500, 0.5, 500
 
       it 'should have setup the emission based on its components', ->
-        expect(@emission.currentCount).toBe(5)
+        expect(@emission.currentCount).toBe(6)
         expect(@emission.currentTime).toBe(500)
 
-      emission('emission').shouldBe.iterable(5)
+      emission('emission').shouldBe.iterable(6)
 
       it 'should not have finished', ->
         expect(@emission.finished()).toBeFalsy()

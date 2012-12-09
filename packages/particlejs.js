@@ -793,15 +793,18 @@
       this.rate = rate != null ? rate : 1;
       this.count = 0;
       this.rest = 0;
+      this.offset = 1;
     }
 
-    /* src/particlejs/counters/by_rate.coffee<ByRate::prepare> line:7 */;
+    /* src/particlejs/counters/by_rate.coffee<ByRate::prepare> line:8 */;
 
 
     ByRate.prototype.prepare = function(bias, biasInSeconds, time) {
       this.rest += biasInSeconds * this.rate;
       this.count = Math.floor(this.rest);
-      return this.rest -= this.count;
+      this.rest -= this.count;
+      this.count += this.offset;
+      return this.offset = 0;
     };
 
     return ByRate;

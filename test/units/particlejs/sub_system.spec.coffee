@@ -55,7 +55,7 @@ describe 'SubSystem,', ->
 
         afterEach -> @system.stop()
 
-        system(source).shouldHave(1).particles()
+        system(source).shouldHave(2).particles()
         system(source).shouldHave(1).emissions()
         system(source).shouldHave().dispatched('emissionStarted')
         system(source).shouldHave().dispatched('particlesCreated')

@@ -54,7 +54,7 @@ describe 'System,', ->
 
         afterEach -> @system.stop()
 
-        system(source).shouldHave(1).particles()
+        system(source).shouldHave(2).particles()
         system(source).shouldHave(1).emissions()
         system(source).shouldHave().dispatched('emissionStarted')
         system(source).shouldHave().dispatched('particlesCreated')
@@ -70,12 +70,12 @@ describe 'System,', ->
           beforeEach -> animate 1000
 
           system(source).should.not.emitting()
-          system(source).shouldHave(9).particles()
+          system(source).shouldHave(10).particles()
           system(source).shouldHave(0).emissions()
           system(source).shouldHave().dispatched('emissionFinished')
           system(source).shouldHave().dispatched('particlesDied')
 
-          system(subSource).shouldHave(2).particles()
+          system(subSource).shouldHave(4).particles()
           system(subSource).shouldHave(2).emissions()
 
         describe 'when adding a second emission after some time,', ->
