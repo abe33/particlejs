@@ -13,13 +13,13 @@ class Particle
     @position = new Point
     @lastPosition = new Point
     @velocity = new Point
-    @parasites = {}
+    @parasite = {}
 
   dispose: ->
     @position = null
     @lastPosition = null
     @velocity = null
-    @parasites = null
+    @parasite = null
 
   die: ->
     @dead = true

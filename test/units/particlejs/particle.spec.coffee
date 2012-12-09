@@ -17,7 +17,7 @@ describe 'Particle', ->
       expect(@particle.velocity).toBeUndefined()
       expect(@particle.position).toBeUndefined()
       expect(@particle.lastPosition).toBeUndefined()
-      expect(@particle.parasites).toBeUndefined()
+      expect(@particle.parasite).toBeUndefined()
 
   describe 'when initialized', ->
     beforeEach -> @particle.init()
@@ -29,7 +29,7 @@ describe 'Particle', ->
       expect(@particle.velocity).toBeDefined()
       expect(@particle.position).toBeDefined()
       expect(@particle.lastPosition).toBeDefined()
-      expect(@particle.parasites).toBeDefined()
+      expect(@particle.parasite).toBeDefined()
 
   describe 'when disposed', ->
     beforeEach ->
@@ -40,7 +40,7 @@ describe 'Particle', ->
       expect(@particle.velocity).toBeNull()
       expect(@particle.position).toBeNull()
       expect(@particle.lastPosition).toBeNull()
-      expect(@particle.parasites).toBeNull()
+      expect(@particle.parasite).toBeNull()
 
   describe 'with a maxLife defined', ->
     beforeEach -> @particle.maxLife = 1000
