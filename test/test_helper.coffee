@@ -29,3 +29,30 @@ global.testProperty = (source, property) ->
 paths = Neat.paths.map (p) -> "#{p}/test/helpers"
 files = findSync 'coffee', paths
 files.forEach (f) -> require f
+
+global.compilable = (source) ->
+  should:
+    compileTo: (value) ->
+      describe "#{source}.compile()", ->
+        it "should return '#{value}'", ->
+          expect(this[source].compile()).toBe(value)
+
+global.cloneable = (source) ->
+  shouldCloneItSelf: ->
+    describe "#{source}.clone()", ->
+      it 'should return a copy of the object', ->
+        expect(this[source].clone()).toBeDefined()
+
+global.sourceOf = (source) ->
+  shouldBe: (value) ->
+    describe "#{source}.toSource()", ->
+      it "should return '#{value}'", ->
+        expect(this[source].toSource()).toBe(value)
+
+  for: (member) ->
+    shouldBe: (value) ->
+      describe "#{source}.sourceFragment('#{member}')", ->
+        it "should return '#{value}'", ->
+          expect(this[source].sourceFragment(member)).toBe(value)
+
+

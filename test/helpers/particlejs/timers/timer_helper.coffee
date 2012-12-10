@@ -2,7 +2,7 @@
 global.timer = (source) ->
   duration: testProperty source, 'duration'
   since: testProperty source, 'since'
-  time: testProperty source, 'time'
+  elapsed: testProperty source, 'elapsed'
   nextTime: testProperty source, 'nextTime'
 
   should:

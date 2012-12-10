@@ -10,7 +10,6 @@ includes: [
 ]
 operators: [
   'strip:requires'
-  'annotate:class'
   'annotate:file'
   'join'
   'exports:package'

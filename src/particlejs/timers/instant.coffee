@@ -1,7 +1,16 @@
+mixinsjs = require 'mixinsjs'
+
+{Sourcable, Cloneable, include} = mixinsjs
+Inlinable = require '../mixins/inlinable'
 
 class Instant
-  prepare: ->
+  include([
+    Inlinable()
+    Cloneable()
+    Sourcable('particlejs.Instant')
+  ]).in Instant
+
+  prepare: -> @nextTime = 0
   finished: -> true
-  nextTime: -> 0
 
 module.exports = Instant
