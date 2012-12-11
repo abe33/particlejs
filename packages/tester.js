@@ -25,7 +25,7 @@
     }));
     particlejs.Impulse.instance().stats = stats;
     return canvas.click(function(e) {
-      var x, y;
+      var emission, o, x, y;
       if (!particlejs.Impulse.instance().running) {
         particlejs.Impulse.instance().add(function() {
           var particle, particles, _i, _len, _results;
@@ -45,13 +45,17 @@
       }
       x = e.pageX - canvas.offset().left;
       y = e.pageY - canvas.offset().top;
-      return system.emit(new particlejs.Emission(particlejs.Particle, new particlejs.Ponctual(new geomjs.Point(x, y)), new particlejs.Unlimited, new particlejs.ByRate(1), new particlejs.MacroInitializer([
+      emission = new particlejs.Emission(particlejs.Particle, new particlejs.Ponctual(new geomjs.Point(x, y)), new particlejs.Unlimited, new particlejs.ByRate(1), new particlejs.MacroInitializer([
         new particlejs.Stream(new geomjs.Point(1, -3), 40, 50, 0.2), {
           initialize: function(particle) {
             return particle.parasite.color = '#000000';
           }
         }
-      ])));
+      ]));
+      console.log(emission.compile());
+      o = eval("(" + (emission.compile().replace(/\s+/g, ' ')) + ")");
+      console.log(o);
+      return system.emit(o);
     });
   });
 

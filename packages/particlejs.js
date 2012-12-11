@@ -1,5 +1,5 @@
 (function() {
-  var $w, BaseAction, ByRate, Cloneable, DEFAULT_RANDOM, DieOnSurface, EMPTY_FUNCTION, Emission, Explosion, Fixed, Force, Friction, Impulse, Inlinable, Instant, KEYWORDS, KEYWORDS_RE, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, PROPERTIES, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, RETURNING_METHODS, RETURN_RE, Random, Randomizable, STRIP_RE, Signal, Sourcable, Stream, SubSystem, Surface, System, THIS_AND_KEYWORDS_RE, Unlimited, UntilDeath, include, requestAnimationFrame,
+  var $w, ARGUMENTS, BaseAction, ByRate, Cloneable, DEFAULT_RANDOM, DieOnSurface, EMPTY_FUNCTION, Emission, Explosion, Fixed, Force, Friction, Impulse, Inlinable, Instant, KEYWORDS, KEYWORDS_RE, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, PROPERTIES, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, RETURNING_METHODS, RETURN_RE, Random, Randomizable, STRIP_RE, Signal, Sourcable, Stream, SubSystem, Surface, System, THIS_AND_KEYWORDS_RE, Unlimited, UntilDeath, include, mapFragments, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -413,7 +413,7 @@
       }
 
       ConcreteInlinable.prototype.sourceFragment = function(member) {
-        var RE, asource, isConstructor, k, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, sourceMapped, v, _ref, _ref1,
+        var RE, asource, isConstructor, k, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, sourceMapped, sourcify, v, _ref, _ref1,
           _this = this;
         isConstructor = member === 'constructor';
         source = this[member];
@@ -448,6 +448,14 @@
           }
           source = asource.join('\n');
         }
+        sourcify = function(value) {
+          var _ref1;
+          if ((value.toSource != null) && ((_ref1 = typeof value) !== 'string' && _ref1 !== 'number')) {
+            return value.toSource();
+          } else {
+            return value;
+          }
+        };
         removeInlinedPropertiesAffectation = function(source) {
           var RE;
           RE = RegExp("this\\.(" + (options.inlinedProperties.join('|')) + ")\\s*=[^=]+[^\\n]+", "g");
@@ -457,22 +465,14 @@
           var RE;
           RE = RegExp("this\\.(" + (options.inlinedProperties.join('|')) + ")", "g");
           return source.replace(RE, function(m, p) {
-            if (_this[p].toSource != null) {
-              return _this[p].toSource();
-            } else {
-              return _this[p];
-            }
+            return sourcify(_this[p]);
           });
         };
         replacePropertiesWithSource = function(source) {
           var RE;
           RE = /@([$A-Za-z_][$A-Za-z0-9_]*)/g;
           return source.replace(RE, function(m, p) {
-            if (_this[p].toSource != null) {
-              return _this[p].toSource();
-            } else {
-              return _this[p];
-            }
+            return sourcify(_this[p]);
           });
         };
         source = source.replace(THIS_AND_KEYWORDS_RE(), '$1').replace(KEYWORDS_RE(), '');
@@ -909,7 +909,7 @@
 
     Emission.prototype.compile = function() {
       var _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8;
-      return "{      iterator: 0,      init: function(){        " + ((_ref = this.emitter) != null ? _ref.sourceFragment('constructor') : void 0) + "        " + ((_ref1 = this.timer) != null ? _ref1.sourceFragment('constructor') : void 0) + "        " + ((_ref2 = this.counter) != null ? _ref2.sourceFragment('constructor') : void 0) + "        " + ((_ref3 = this.initializer) != null ? _ref3.sourceFragment('constructor') : void 0) + "      },      prepare: function(bias, biasInSeconds, time) {        var count = 0, nextTime = 0;        " + ((_ref4 = this.timer) != null ? _ref4.sourceFragment('prepare') : void 0) + "        " + ((_ref5 = this.counter) != null ? _ref5.sourceFragment('prepare') : void 0) + "        this.nextTime = nextTime;        this.count = count;      },      hasNext: function(){        return this.iterator < this.currentCount;      },      next: function(){        var get, particle;        " + ((_ref6 = this.emitter) != null ? _ref6.sourceFragment('get') : void 0) + "        particle = particlejs.Particle.get({position: get});        particle.position.x = get.x;        particle.position.y = get.y;        " + ((_ref7 = this.initializer) != null ? _ref7.sourceFragment('initialize') : void 0) + "        this.iterator++;        return particle;      },      nextTime: function(){        return this.nextTime;      },      finished: function(){        var finished = true;        " + ((_ref8 = this.timer) != null ? _ref8.sourceFragment('finished') : void 0) + "        return finished;      }    }";
+      return "(function(){\n  var emission = {\n    init: function(){\n      " + ((_ref = this.emitter) != null ? _ref.sourceFragment('constructor') : void 0) + "\n      " + ((_ref1 = this.timer) != null ? _ref1.sourceFragment('constructor') : void 0) + "\n      " + ((_ref2 = this.counter) != null ? _ref2.sourceFragment('constructor') : void 0) + "\n      " + ((_ref3 = this.initializer) != null ? _ref3.sourceFragment('constructor') : void 0) + "\n    },\n    prepare: function(bias, biasInSeconds, time) {\n      this.iterator = 0;\n      var count = 0, nextTime = 0;\n\n      " + ((_ref4 = this.timer) != null ? _ref4.sourceFragment('prepare') : void 0) + "\n\n      " + ((_ref5 = this.counter) != null ? _ref5.sourceFragment('prepare') : void 0) + "\n\n      this._nextTime = nextTime;\n      this.count = count;\n    },\n    hasNext: function(){\n      return this.iterator < this.count;\n    },\n    next: function(){\n      var get, particle;\n      " + ((_ref6 = this.emitter) != null ? _ref6.sourceFragment('get') : void 0) + "\n\n      particle = particlejs.Particle.get({position: get});\n      particle.position.x = get.x;\n      particle.position.y = get.y;\n\n      " + ((_ref7 = this.initializer) != null ? _ref7.sourceFragment('initialize') : void 0) + "\n\n      this.iterator++;\n      return particle;\n    },\n    nextTime: function(){\n      return this._nextTime;\n    },\n    finished: function(){\n      var finished = true;\n\n      " + ((_ref8 = this.timer) != null ? _ref8.sourceFragment('finished') : void 0) + "\n\n      return finished;\n    }\n  };\n  emission.init();\n  return emission;\n})()";
     };
 
     Emission.prototype.toSource = function() {
@@ -1111,23 +1111,29 @@
 
   Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
 
+  mapFragments = function(member) {
+    return function() {
+      var _this = this;
+      return this.initializers.map(function(i) {
+        var a, s;
+        return s = i.sourceFragment != null ? i.sourceFragment(member) : i[member] === Object ? '' : (a = i[member].toString().split('\n'), a.shift(), a.pop(), a.join('\n'));
+      }).join('\n');
+    };
+  };
+
   MacroInitializer = (function() {
 
     include([
       Inlinable({
         mapSource: {
           constructor: function() {
-            return this.initializers.map(function(i) {
-              return i.sourceFragment('constructor');
-            }).join('\n');
+            return mapFragments('constructor').call(this);
           },
           initialize: function() {
-            return this.initializers.map(function(i) {
-              return i.sourceFragment('initialize');
-            }).join('\n');
+            return mapFragments('initialize').call(this);
           }
         }
-      }), Cloneable('initializers'), Sourcable('particlejs.MacroInitializer', 'initializers')
+      }), Cloneable('initializers')
     ])["in"](MacroInitializer);
 
     function MacroInitializer(initializers) {
@@ -1143,6 +1149,19 @@
         _results.push(initializer.initialize(particle));
       }
       return _results;
+    };
+
+    MacroInitializer.prototype.toSource = function() {
+      var name, params;
+      name = 'particlejs.MacroInitializer';
+      params = this.initializers.map(function(initializer) {
+        if (initializer.toSource != null) {
+          return initializer.toSource();
+        } else {
+          return initializer;
+        }
+      });
+      return "new " + name + "([" + (params.join(',')) + "])";
     };
 
     return MacroInitializer;
@@ -1184,9 +1203,25 @@
 
   Point = geomjs.Point;
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
+  PROPERTIES = ['velocityMin', 'velocityMax', 'angleRandom'];
+
+  ARGUMENTS = ['direction'].concat(PROPERTIES).concat('random');
+
   Stream = (function() {
 
-    Randomizable.attachTo(Stream);
+    include([
+      Inlinable({
+        inlinedProperties: PROPERTIES,
+        rename: {
+          random: 'streamRandom'
+        },
+        mapSource: {
+          constructor: 'this.direction = @direction;\nthis.random = @random;'
+        }
+      }), Cloneable.apply(null, ARGUMENTS), Sourcable.apply(null, ['particlejs.Stream'].concat(ARGUMENTS)), Randomizable
+    ])["in"](Stream);
 
     function Stream(direction, velocityMin, velocityMax, angleRandom, random) {
       this.direction = direction != null ? direction : new Point(1, 1);

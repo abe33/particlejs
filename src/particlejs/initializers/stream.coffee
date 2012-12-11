@@ -1,10 +1,28 @@
 geomjs = require 'geomjs'
+mixinsjs = require 'mixinsjs'
 
-Randomizable = require '../mixins/randomizable'
+
 {Point} = geomjs
+{Sourcable, Cloneable, include} = mixinsjs
+Inlinable = require '../mixins/inlinable'
+Randomizable = require '../mixins/randomizable'
+
+PROPERTIES = ['velocityMin', 'velocityMax', 'angleRandom']
+ARGUMENTS = ['direction'].concat(PROPERTIES).concat('random')
 
 class Stream
-  Randomizable.attachTo Stream
+  include([
+    Inlinable(
+      inlinedProperties: PROPERTIES
+      rename:
+        random: 'streamRandom'
+      mapSource:
+        constructor: 'this.direction = @direction;\nthis.random = @random;'
+    )
+    Cloneable.apply(null, ARGUMENTS)
+    Sourcable.apply(null, ['particlejs.Stream'].concat ARGUMENTS)
+    Randomizable
+  ]).in Stream
 
   constructor: (@direction=new Point(1,1),
                 @velocityMin=0,

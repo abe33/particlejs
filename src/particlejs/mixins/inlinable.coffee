@@ -55,6 +55,12 @@ Inlinable = (options={}) ->
         # Source casted back as a string
         source = asource.join('\n')
 
+      sourcify = (value) ->
+        if value.toSource? and typeof value not in ['string', 'number']
+          value.toSource()
+        else
+          value
+
       # Inlined properties handlers
       removeInlinedPropertiesAffectation = (source) =>
         RE = ///
@@ -68,13 +74,11 @@ Inlinable = (options={}) ->
 
       replaceInlinedPropertiesWithValues = (source) =>
         RE = ///this\.(#{options.inlinedProperties.join '|'})///g
-        source.replace RE, (m, p) =>
-          if @[p].toSource? then @[p].toSource() else @[p]
+        source.replace RE, (m, p) => sourcify @[p]
 
       replacePropertiesWithSource = (source) =>
         RE = ///@([$A-Za-z_][$A-Za-z0-9_]*)///g
-        source.replace RE, (m, p) =>
-          if @[p].toSource? then @[p].toSource() else @[p]
+        source.replace RE, (m, p) => sourcify @[p]
 
       # Keywords replacement, those keywords will be available as local
       # variable in the resulting code.

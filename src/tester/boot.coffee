@@ -82,7 +82,7 @@ $(document).ready ->
 
     x = e.pageX - canvas.offset().left
     y = e.pageY - canvas.offset().top
-    system.emit new particlejs.Emission(
+    emission = new particlejs.Emission(
       particlejs.Particle,
       new particlejs.Ponctual(new geomjs.Point(x, y)),
       new particlejs.Unlimited,
@@ -92,4 +92,12 @@ $(document).ready ->
         initialize: (particle) -> particle.parasite.color = '#000000'
       ])
     )
+
+    console.log emission.compile()
+
+    o = eval "(#{emission.compile().replace(/\s+/g, ' ')})"
+    console.log o
+
+    system.emit o
+    # system.emit emission
 

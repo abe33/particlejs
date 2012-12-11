@@ -16,7 +16,8 @@ describe 'MacroInitializer', ->
         new Explosion(
           0, 10, 0, 1,
           new Random(new NoRandom(0.5))
-        )
+        ),
+        initialize: (particle) -> particle.parasite.color = '#000000'
       ])
       @particle.init()
       @initializer.initialize @particle
@@ -28,7 +29,7 @@ describe 'MacroInitializer', ->
 
     cloneable(source).shouldCloneItSelf()
     sourceOf(source)
-    .shouldBe('new particlejs.MacroInitializer([new particlejs.Life(100,100,new chancejs.Random(new chancejs.MathRandom())),new particlejs.Explosion(0,10,0,1,new chancejs.Random(new chancejs.NoRandom(0.5)))])')
+    .shouldBe('new particlejs.MacroInitializer([new particlejs.Life(100,100,new chancejs.Random(new chancejs.MathRandom())),new particlejs.Explosion(0,10,0,1,new chancejs.Random(new chancejs.NoRandom(0.5))),[object Object]])')
 
     sourceOf(source).for('constructor')
     .shouldBe('''this.lifeRandom = new chancejs.Random(new chancejs.MathRandom());
@@ -40,4 +41,5 @@ var angle, velocity;
 angle = this.explosionRandom["in"](0, 1);
 velocity = this.explosionRandom["in"](0, 10);
 particle.velocity.x = Math.cos(angle) * velocity;
-particle.velocity.y = Math.sin(angle) * velocity;''')
+particle.velocity.y = Math.sin(angle) * velocity;
+particle.parasite.color = '#000000';''')

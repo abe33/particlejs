@@ -43,8 +43,8 @@ class Emission
   finished: -> @timer.finished()
 
   compile: ->
-    "{
-      iterator: 0,
+    """(function(){
+    var emission = {
       init: function(){
         #{@emitter?.sourceFragment('constructor')}
         #{@timer?.sourceFragment('constructor')}
@@ -52,17 +52,18 @@ class Emission
         #{@initializer?.sourceFragment('constructor')}
       },
       prepare: function(bias, biasInSeconds, time) {
+        this.iterator = 0;
         var count = 0, nextTime = 0;
 
         #{@timer?.sourceFragment('prepare')}
 
         #{@counter?.sourceFragment('prepare')}
 
-        this.nextTime = nextTime;
+        this._nextTime = nextTime;
         this.count = count;
       },
       hasNext: function(){
-        return this.iterator < this.currentCount;
+        return this.iterator < this.count;
       },
       next: function(){
         var get, particle;
@@ -78,7 +79,7 @@ class Emission
         return particle;
       },
       nextTime: function(){
-        return this.nextTime;
+        return this._nextTime;
       },
       finished: function(){
         var finished = true;
@@ -87,7 +88,10 @@ class Emission
 
         return finished;
       }
-    }"
+    };
+    emission.init();
+    return emission;
+  })()"""
 
   toSource: ->
     args = [@particleType.source]
