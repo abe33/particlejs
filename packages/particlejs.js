@@ -1,5 +1,5 @@
 (function() {
-  var $w, BaseAction, ByRate, Cloneable, DEFAULT_RANDOM, DieOnSurface, EMPTY_FUNCTION, Emission, Explosion, Fixed, Force, Friction, Impulse, Inlinable, Instant, KEYWORDS, KEYWORDS_RE, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, RETURNING_METHODS, RETURN_RE, Random, Randomizable, STRIP_RE, Signal, Sourcable, Stream, SubSystem, Surface, System, THIS_AND_KEYWORDS_RE, Unlimited, UntilDeath, include, requestAnimationFrame,
+  var $w, BaseAction, ByRate, Cloneable, DEFAULT_RANDOM, DieOnSurface, EMPTY_FUNCTION, Emission, Explosion, Fixed, Force, Friction, Impulse, Inlinable, Instant, KEYWORDS, KEYWORDS_RE, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, PROPERTIES, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, RETURNING_METHODS, RETURN_RE, Random, Randomizable, STRIP_RE, Signal, Sourcable, Stream, SubSystem, Surface, System, THIS_AND_KEYWORDS_RE, Unlimited, UntilDeath, include, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -373,7 +373,7 @@
 
   KEYWORDS = $w('biasInSeconds bias time nextTime');
 
-  RETURNING_METHODS = $w('finished');
+  RETURNING_METHODS = $w('finished get');
 
   EMPTY_FUNCTION = function() {
     return /^function\s*([^(]+\s*)*\([^)]*\)\s*\{\}/gm;
@@ -384,7 +384,7 @@
   };
 
   RETURN_RE = function() {
-    return /return\s*([^;]+);/;
+    return /return\s*([^;]+);/gm;
   };
 
   THIS_AND_KEYWORDS_RE = function() {
@@ -413,46 +413,70 @@
       }
 
       ConcreteInlinable.prototype.sourceFragment = function(member) {
-        var asource, isConstructor, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, source,
+        var RE, asource, isConstructor, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, _ref,
           _this = this;
         isConstructor = member === 'constructor';
         source = this[member];
         if (isConstructor && options["super"]) {
           source = source.__super__.constructor;
         }
-        source = source.toString();
-        if (EMPTY_FUNCTION().test(source)) {
-          return '';
+        if ((((_ref = options.mapSource) != null ? _ref[member] : void 0) != null) && typeof options.mapSource[member] !== 'function') {
+          source = options.mapSource[member];
+        } else {
+          source = source.toString();
+          if (EMPTY_FUNCTION().test(source)) {
+            return '';
+          }
+          if (isConstructor && options.noconstructor) {
+            return '';
+          }
+          asource = source.split('\n');
+          asource.shift();
+          asource.pop();
+          if (isConstructor) {
+            asource = asource.filter(function(l) {
+              return !RegExp("" + (KEYWORDS.join('|'))).test(l);
+            });
+          }
+          source = asource.join('\n');
         }
-        if (isConstructor && options.noconstructor) {
-          return '';
-        }
-        asource = source.split('\n');
-        asource.shift();
-        asource.pop();
-        if (isConstructor) {
-          asource = asource.filter(function(l) {
-            return !RegExp("" + (KEYWORDS.join('|'))).test(l);
-          });
-        }
-        source = asource.join('\n');
         removeInlinedPropertiesAffectation = function(source) {
           var RE;
-          RE = RegExp("this\\.(" + (options.inlinedProperties.join('|')) + ")\\s*=[^\\n]+", "g");
+          RE = RegExp("this\\.(" + (options.inlinedProperties.join('|')) + ")\\s*=[^=]+[^\\n]+", "g");
           return source.replace(RE, '');
         };
         replaceInlinedPropertiesWithValues = function(source) {
           var RE;
           RE = RegExp("this\\.(" + (options.inlinedProperties.join('|')) + ")", "g");
           return source.replace(RE, function(m, p) {
-            return _this[p];
+            if (_this[p].toSource != null) {
+              return _this[p].toSource();
+            } else {
+              return _this[p];
+            }
+          });
+        };
+        replacePropertiesWithSource = function(source) {
+          var RE;
+          RE = /@([$A-Za-z_][$A-Za-z0-9_]*)/g;
+          return source.replace(RE, function(m, p) {
+            if (_this[p].toSource != null) {
+              return _this[p].toSource();
+            } else {
+              return _this[p];
+            }
           });
         };
         source = source.replace(THIS_AND_KEYWORDS_RE(), '$1').replace(KEYWORDS_RE(), '');
+        if (options.keywords != null) {
+          RE = RegExp("this\\.(" + (options.keywords.join('|')) + ")", "gm");
+          source = source.replace(RE, '$1');
+        }
         if (options.inlinedProperties != null) {
           source = removeInlinedPropertiesAffectation(source);
           source = replaceInlinedPropertiesWithValues(source);
         }
+        source = replacePropertiesWithSource(source);
         if (__indexOf.call(RETURNING_METHODS, member) >= 0) {
           source = source.replace(RETURN_RE(), "" + member + " = $1;");
         } else {
@@ -741,7 +765,16 @@
   /* src/particlejs/counters/by_rate.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   ByRate = (function() {
+
+    include([
+      Inlinable({
+        inlinedProperties: ['rate'],
+        keywords: ['count']
+      }), Cloneable('rate'), Sourcable('particlejs.ByRate', 'rate')
+    ])["in"](ByRate);
 
     function ByRate(rate) {
       this.rate = rate != null ? rate : 1;
@@ -765,7 +798,18 @@
   /* src/particlejs/counters/fixed.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   Fixed = (function() {
+
+    include([
+      Inlinable({
+        inlinedProperties: ['count'],
+        mapSource: {
+          prepare: 'count = this.count;'
+        }
+      }), Cloneable('count'), Sourcable('particlejs.Fixed', 'count')
+    ])["in"](Fixed);
 
     function Fixed(count) {
       this.count = count != null ? count : 1;
@@ -795,7 +839,13 @@
   /* src/particlejs/emission.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
+  PROPERTIES = ['particleType', 'emitter', 'timer', 'counter', 'initializer'];
+
   Emission = (function() {
+
+    include([Cloneable.apply(null, PROPERTIES)])["in"](Emission);
 
     function Emission(particleType, emitter, timer, counter, initializer) {
       this.particleType = particleType != null ? particleType : Particle;
@@ -837,6 +887,20 @@
 
     Emission.prototype.finished = function() {
       return this.timer.finished();
+    };
+
+    Emission.prototype.compile = function() {
+      return '';
+    };
+
+    Emission.prototype.toSource = function() {
+      var args,
+        _this = this;
+      args = [this.particleType.source];
+      ['emitter', 'timer', 'counter', 'initializer'].forEach(function(p) {
+        return args.push(_this[p].toSource());
+      });
+      return "new particlejs.Emission(" + (args.join(',')) + ")";
     };
 
     return Emission;
@@ -886,7 +950,19 @@
 
   Point = geomjs.Point;
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   Ponctual = (function() {
+
+    include([
+      Inlinable({
+        noconstructor: true,
+        inlinedProperties: ['point'],
+        mapSource: {
+          get: 'return this.point;'
+        }
+      }), Cloneable('point'), Sourcable('particlejs.Ponctual', 'point')
+    ])["in"](Ponctual);
 
     function Ponctual(point) {
       this.point = point != null ? point : new Point;
@@ -952,9 +1028,18 @@
   /* src/particlejs/initializers/life.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   Life = (function() {
 
-    Randomizable.attachTo(Life);
+    include([
+      Inlinable({
+        inlinedProperties: ['lifeMin', 'lifeMax'],
+        mapSource: {
+          constructor: 'this.random = @random;'
+        }
+      }), Cloneable('lifeMin', 'lifeMax', 'random'), Sourcable('particlejs.Life', 'lifeMin', 'lifeMax', 'random'), Randomizable
+    ])["in"](Life);
 
     function Life(lifeMin, lifeMax, random) {
       this.lifeMin = lifeMin;
@@ -1073,6 +1158,8 @@
   Particle = (function() {
 
     function Particle() {}
+
+    Particle.source = 'particlejs.Particle';
 
     Poolable.attachTo(Particle);
 

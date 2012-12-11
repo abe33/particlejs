@@ -1,7 +1,20 @@
+
+mixinsjs = require 'mixinsjs'
+
+{Sourcable, Cloneable, include} = mixinsjs
+Inlinable = require '../mixins/inlinable'
 Randomizable = require '../mixins/randomizable'
 
 class Life
-  Randomizable.attachTo Life
+  include([
+    Inlinable(
+      inlinedProperties:['lifeMin','lifeMax']
+      mapSource:
+        constructor: 'this.random = @random;' )
+    Cloneable('lifeMin','lifeMax','random')
+    Sourcable('particlejs.Life','lifeMin','lifeMax','random')
+    Randomizable
+  ]).in Life
 
   constructor: (@lifeMin, @lifeMax, @random) ->
     @lifeMax = @lifeMin unless @lifeMax?

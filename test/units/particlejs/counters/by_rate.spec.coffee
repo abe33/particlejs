@@ -18,4 +18,17 @@ describe 'ByRate', ->
       counter(source).count.shouldBe(6)
       byRateCounter(source).rest.shouldBe(0.1)
 
+    cloneable(source).shouldCloneItSelf()
+    sourceOf(source).shouldBe('new particlejs.ByRate(10)')
 
+    sourceOf(source).for('constructor')
+    .shouldBe('''count = 0;
+this.rest = 0;
+this.offset = 1;''')
+
+    sourceOf(source).for('prepare')
+    .shouldBe('''this.rest += biasInSeconds * 10;
+count = Math.floor(this.rest);
+this.rest -= count;
+count += this.offset;
+this.offset = 0;''')

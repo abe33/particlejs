@@ -4,6 +4,7 @@ geomjs = require 'geomjs'
 Poolable = require './mixins/poolable'
 
 class Particle
+  @source = 'particlejs.Particle'
   Poolable.attachTo Particle
 
   init: ->

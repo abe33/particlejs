@@ -1,5 +1,16 @@
 
+mixinsjs = require 'mixinsjs'
+
+{Sourcable, Cloneable, include} = mixinsjs
+Inlinable = require '../mixins/inlinable'
+
 class ByRate
+  include([
+    Inlinable(inlinedProperties:['rate'], keywords:['count'])
+    Cloneable('rate')
+    Sourcable('particlejs.ByRate','rate')
+  ]).in ByRate
+
   constructor: (@rate=1) ->
     @count = 0
     @rest = 0

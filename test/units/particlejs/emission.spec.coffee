@@ -11,6 +11,7 @@ Emission = require '../../../lib/particlejs/emission'
 
 describe 'Emission', ->
   describe 'when instanciated with all components', ->
+    source = 'emission'
     beforeEach ->
       @emitter = emitter = new Ponctual(new Point)
       @timer = timer = new Limited(1000)
@@ -70,5 +71,14 @@ describe 'Emission', ->
             e.next()
             n++
             break if n > max
+
+    cloneable(source).shouldCloneItSelf()
+    sourceOf(source)
+    .shouldBe('new particlejs.Emission(particlejs.Particle,new particlejs.Ponctual(new geomjs.Point(0,0)),new particlejs.Limited(1000,0),new particlejs.ByRate(10),new particlejs.Life(100,100,new chancejs.Random(new chancejs.MathRandom())))')
+
+    compilable(source)
+    .should.compileTo('''
+    ''')
+
 
 
