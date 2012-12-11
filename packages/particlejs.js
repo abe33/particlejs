@@ -413,16 +413,24 @@
       }
 
       ConcreteInlinable.prototype.sourceFragment = function(member) {
-        var RE, asource, isConstructor, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, _ref,
+        var RE, asource, isConstructor, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, sourceMapped, _ref,
           _this = this;
         isConstructor = member === 'constructor';
         source = this[member];
         if (isConstructor && options["super"]) {
           source = source.__super__.constructor;
         }
-        if ((((_ref = options.mapSource) != null ? _ref[member] : void 0) != null) && typeof options.mapSource[member] !== 'function') {
-          source = options.mapSource[member];
-        } else {
+        sourceMapped = false;
+        if (((_ref = options.mapSource) != null ? _ref[member] : void 0) != null) {
+          if (!(isConstructor && typeof options.mapSource[member] === 'function')) {
+            source = options.mapSource[member];
+            if (typeof source === 'function') {
+              source = source.call(this);
+            }
+            sourceMapped = true;
+          }
+        }
+        if (!sourceMapped) {
           source = source.toString();
           if (EMPTY_FUNCTION().test(source)) {
             return '';
@@ -1036,7 +1044,14 @@
       Inlinable({
         inlinedProperties: ['lifeMin', 'lifeMax'],
         mapSource: {
-          constructor: 'this.random = @random;'
+          constructor: 'this.random = @random;',
+          initialize: function() {
+            if (this.lifeMax === this.lifeMin) {
+              return 'particle.maxLife = @lifeMin;';
+            } else {
+              return 'particle.maxLife = this.random["in"](@lifeMin, @lifeMax);';
+            }
+          }
         }
       }), Cloneable('lifeMin', 'lifeMax', 'random'), Sourcable('particlejs.Life', 'lifeMin', 'lifeMax', 'random'), Randomizable
     ])["in"](Life);

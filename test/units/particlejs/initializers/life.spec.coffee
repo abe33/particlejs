@@ -5,8 +5,8 @@ Life = require '../../../../lib/particlejs/initializers/life'
 {Random, NoRandom} = require 'chancejs'
 
 describe 'Life', ->
+  source = 'initializer'
   describe 'when instanciated with a life amount', ->
-    source = 'initializer'
     beforeEach -> @initializer = new Life 100
 
     describe 'and its initialize method is called with a particle', ->
@@ -21,12 +21,11 @@ describe 'Life', ->
     sourceOf(source)
     .shouldBe('new particlejs.Life(100,100,new chancejs.Random(new chancejs.MathRandom()))')
 
+    sourceOf(source).for('constructor')
+    .shouldBe('this.random = new chancejs.Random(new chancejs.MathRandom());')
+
     sourceOf(source).for('initialize')
-    .shouldBe('''if (100 === 100) {
-  particle.maxLife = 100;
-} else {
-  particle.maxLife = this.random["in"](100, 100);
-}''')
+    .shouldBe('particle.maxLife = 100;')
 
   describe 'when instanciated with a life range', ->
     beforeEach -> @initializer = new Life 100, 200, new Random new NoRandom 0.5
@@ -42,3 +41,6 @@ describe 'Life', ->
     describe 'when instanciated with nothing', ->
       it 'should have set a default random object', ->
         expect(new Life().random).toBeDefined()
+
+    sourceOf(source).for('initialize')
+    .shouldBe('particle.maxLife = this.random["in"](100, 200);')

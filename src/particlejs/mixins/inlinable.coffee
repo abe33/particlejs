@@ -26,10 +26,14 @@ Inlinable = (options={}) ->
       if isConstructor and options.super
         source = source.__super__.constructor
 
-      if options.mapSource?[member]? and
-         typeof options.mapSource[member] isnt 'function'
-        source = options.mapSource[member]
-      else
+      sourceMapped = false
+      if options.mapSource?[member]?
+        unless isConstructor and typeof options.mapSource[member] is 'function'
+          source = options.mapSource[member]
+          source = source.call this if typeof source is 'function'
+          sourceMapped = true
+
+      unless sourceMapped
         source = source.toString()
 
         # Empty functions and excluded constructor return an empty string

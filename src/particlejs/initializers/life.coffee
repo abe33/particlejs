@@ -10,7 +10,13 @@ class Life
     Inlinable(
       inlinedProperties:['lifeMin','lifeMax']
       mapSource:
-        constructor: 'this.random = @random;' )
+        constructor: 'this.random = @random;'
+        initialize: ->
+          if @lifeMax is @lifeMin
+            'particle.maxLife = @lifeMin;'
+          else
+            'particle.maxLife = this.random["in"](@lifeMin, @lifeMax);'
+    )
     Cloneable('lifeMin','lifeMax','random')
     Sourcable('particlejs.Life','lifeMin','lifeMax','random')
     Randomizable
