@@ -83,7 +83,7 @@ describe 'Emission', ->
         this.elapsed = 0;
         this.rest = 0;
         this.offset = 1;
-        this.random = new chancejs.Random(new chancejs.MathRandom());
+        this.lifeRandom = new chancejs.Random(new chancejs.MathRandom());
       },
       prepare: function(bias, biasInSeconds, time) {
         var count = 0, nextTime = 0;

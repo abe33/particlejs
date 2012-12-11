@@ -413,7 +413,7 @@
       }
 
       ConcreteInlinable.prototype.sourceFragment = function(member) {
-        var RE, asource, isConstructor, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, sourceMapped, _ref,
+        var RE, asource, isConstructor, k, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, sourceMapped, v, _ref, _ref1,
           _this = this;
         isConstructor = member === 'constructor';
         source = this[member];
@@ -422,7 +422,7 @@
         }
         sourceMapped = false;
         if (((_ref = options.mapSource) != null ? _ref[member] : void 0) != null) {
-          if (!(isConstructor && typeof options.mapSource[member] === 'function')) {
+          if (!(isConstructor && options.mapSource[member] === Object)) {
             source = options.mapSource[member];
             if (typeof source === 'function') {
               source = source.call(this);
@@ -485,6 +485,13 @@
           source = replaceInlinedPropertiesWithValues(source);
         }
         source = replacePropertiesWithSource(source);
+        if (options.rename != null) {
+          _ref1 = options.rename;
+          for (k in _ref1) {
+            v = _ref1[k];
+            source = source.replace(RegExp("\\b" + k + "\\b", "g"), v);
+          }
+        }
         if (__indexOf.call(RETURNING_METHODS, member) >= 0) {
           source = source.replace(RETURN_RE(), "" + member + " = $1;");
         } else {
@@ -1012,9 +1019,23 @@
   /* src/particlejs/initializers/explosion.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
+  PROPERTIES = ['velocityMin', 'velocityMax', 'angleMin', 'angleMax'];
+
   Explosion = (function() {
 
-    Randomizable.attachTo(Explosion);
+    include([
+      Inlinable({
+        inlinedProperties: PROPERTIES,
+        rename: {
+          random: 'explosionRandom'
+        },
+        mapSource: {
+          constructor: 'this.random = @random;'
+        }
+      }), Cloneable.apply(null, PROPERTIES.concat('random')), Sourcable.apply(null, ['particlejs.Explosion'].concat(PROPERTIES).concat('random')), Randomizable
+    ])["in"](Explosion);
 
     function Explosion(velocityMin, velocityMax, angleMin, angleMax, random) {
       this.velocityMin = velocityMin != null ? velocityMin : 0;
@@ -1047,6 +1068,9 @@
     include([
       Inlinable({
         inlinedProperties: ['lifeMin', 'lifeMax'],
+        rename: {
+          random: 'lifeRandom'
+        },
         mapSource: {
           constructor: 'this.random = @random;',
           initialize: function() {
@@ -1085,7 +1109,26 @@
   /* src/particlejs/initializers/macro_initializer.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   MacroInitializer = (function() {
+
+    include([
+      Inlinable({
+        mapSource: {
+          constructor: function() {
+            return this.initializers.map(function(i) {
+              return i.sourceFragment('constructor');
+            }).join('\n');
+          },
+          initialize: function() {
+            return this.initializers.map(function(i) {
+              return i.sourceFragment('initialize');
+            }).join('\n');
+          }
+        }
+      }), Cloneable('initializers'), Sourcable('particlejs.MacroInitializer', 'initializers')
+    ])["in"](MacroInitializer);
 
     function MacroInitializer(initializers) {
       this.initializers = initializers;

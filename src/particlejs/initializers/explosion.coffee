@@ -1,7 +1,27 @@
+
+mixinsjs = require 'mixinsjs'
+
+{Sourcable, Cloneable, include} = mixinsjs
+Inlinable = require '../mixins/inlinable'
 Randomizable = require '../mixins/randomizable'
 
+PROPERTIES = ['velocityMin','velocityMax','angleMin','angleMax']
+
 class Explosion
-  Randomizable.attachTo Explosion
+  include([
+    Inlinable(
+      inlinedProperties: PROPERTIES
+      rename:
+        random: 'explosionRandom'
+      mapSource:
+        constructor: 'this.random = @random;'
+    )
+    Cloneable.apply(null, PROPERTIES.concat('random'))
+    Sourcable.apply(
+      null, ['particlejs.Explosion'].concat(PROPERTIES).concat('random')
+    )
+    Randomizable
+  ]).in Explosion
 
   constructor: (@velocityMin=0,
                 @velocityMax=1,

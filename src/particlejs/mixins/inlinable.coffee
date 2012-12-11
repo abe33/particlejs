@@ -28,7 +28,7 @@ Inlinable = (options={}) ->
 
       sourceMapped = false
       if options.mapSource?[member]?
-        unless isConstructor and typeof options.mapSource[member] is 'function'
+        unless isConstructor and options.mapSource[member] is Object
           source = options.mapSource[member]
           source = source.call this if typeof source is 'function'
           sourceMapped = true
@@ -93,6 +93,10 @@ Inlinable = (options={}) ->
         source = replaceInlinedPropertiesWithValues source
 
       source = replacePropertiesWithSource source
+
+      if options.rename?
+        for k,v of options.rename
+          source = source.replace ///\b#{k}\b///g, v
 
       # If the function is supposed to return a value, the return is
       # replaced with an affectation to a variable with the name of the

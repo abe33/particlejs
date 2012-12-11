@@ -22,7 +22,7 @@ describe 'Life', ->
     .shouldBe('new particlejs.Life(100,100,new chancejs.Random(new chancejs.MathRandom()))')
 
     sourceOf(source).for('constructor')
-    .shouldBe('this.random = new chancejs.Random(new chancejs.MathRandom());')
+    .shouldBe('this.lifeRandom = new chancejs.Random(new chancejs.MathRandom());')
 
     sourceOf(source).for('initialize')
     .shouldBe('particle.maxLife = 100;')
@@ -43,4 +43,4 @@ describe 'Life', ->
         expect(new Life().random).toBeDefined()
 
     sourceOf(source).for('initialize')
-    .shouldBe('particle.maxLife = this.random["in"](100, 200);')
+    .shouldBe('particle.maxLife = this.lifeRandom["in"](100, 200);')

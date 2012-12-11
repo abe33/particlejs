@@ -8,7 +8,9 @@ Randomizable = require '../mixins/randomizable'
 class Life
   include([
     Inlinable(
-      inlinedProperties:['lifeMin','lifeMax']
+      inlinedProperties:[ 'lifeMin','lifeMax']
+      rename:
+        random: 'lifeRandom'
       mapSource:
         constructor: 'this.random = @random;'
         initialize: ->
