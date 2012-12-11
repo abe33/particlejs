@@ -22,8 +22,7 @@ describe 'ByRate', ->
     sourceOf(source).shouldBe('new particlejs.ByRate(10)')
 
     sourceOf(source).for('constructor')
-    .shouldBe('''count = 0;
-this.rest = 0;
+    .shouldBe('''this.rest = 0;
 this.offset = 1;''')
 
     sourceOf(source).for('prepare')

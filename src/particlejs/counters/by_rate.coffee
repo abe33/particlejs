@@ -6,7 +6,13 @@ Inlinable = require '../mixins/inlinable'
 
 class ByRate
   include([
-    Inlinable(inlinedProperties:['rate'], keywords:['count'])
+    Inlinable(
+      inlinedProperties:['rate']
+      keywords: ['count']
+      mapSource:
+        constructor: '''this.rest = @rest;
+                        this.offset = @offset;'''
+    )
     Cloneable('rate')
     Sourcable('particlejs.ByRate','rate')
   ]).in ByRate

@@ -42,7 +42,52 @@ class Emission
 
   finished: -> @timer.finished()
 
-  compile: -> ''
+  compile: ->
+    "{
+      iterator: 0,
+      init: function(){
+        #{@emitter?.sourceFragment('constructor')}
+        #{@timer?.sourceFragment('constructor')}
+        #{@counter?.sourceFragment('constructor')}
+        #{@initializer?.sourceFragment('constructor')}
+      },
+      prepare: function(bias, biasInSeconds, time) {
+        var count = 0, nextTime = 0;
+
+        #{@timer?.sourceFragment('prepare')}
+
+        #{@counter?.sourceFragment('prepare')}
+
+        this.nextTime = nextTime;
+        this.count = count;
+      },
+      hasNext: function(){
+        return this.iterator < this.currentCount;
+      },
+      next: function(){
+        var get, particle;
+        #{@emitter?.sourceFragment('get')}
+
+        particle = particlejs.Particle.get({position: get});
+        particle.position.x = get.x;
+        particle.position.y = get.y;
+
+        #{@initializer?.sourceFragment('initialize')}
+
+        this.iterator++;
+        return particle;
+      },
+      nextTime: function(){
+        return this.nextTime;
+      },
+      finished: function(){
+        var finished = true;
+
+        #{@timer?.sourceFragment('finished')}
+
+        return finished;
+      }
+    }"
 
   toSource: ->
     args = [@particleType.source]

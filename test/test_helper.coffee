@@ -35,7 +35,8 @@ global.compilable = (source) ->
     compileTo: (value) ->
       describe "#{source}.compile()", ->
         it "should return '#{value}'", ->
-          expect(this[source].compile()).toBe(value)
+          squeeze = (s) -> s.replace /\s+/g, ' '
+          expect(squeeze this[source].compile()).toBe(squeeze value)
 
 global.cloneable = (source) ->
   shouldCloneItSelf: ->

@@ -77,8 +77,59 @@ describe 'Emission', ->
     .shouldBe('new particlejs.Emission(particlejs.Particle,new particlejs.Ponctual(new geomjs.Point(0,0)),new particlejs.Limited(1000,0),new particlejs.ByRate(10),new particlejs.Life(100,100,new chancejs.Random(new chancejs.MathRandom())))')
 
     compilable(source)
-    .should.compileTo('''
-    ''')
+    .should.compileTo('''{
+      iterator: 0,
+      init: function(){
+        this.elapsed = 0;
+        this.rest = 0;
+        this.offset = 1;
+        this.random = new chancejs.Random(new chancejs.MathRandom());
+      },
+      prepare: function(bias, biasInSeconds, time) {
+        var count = 0, nextTime = 0;
+
+        if (!this.firstTime) {
+          nextTime = 0 + bias;
+          this.firstTime = true;
+        } else {
+          nextTime = bias;
+        }
+        this.elapsed += bias;
+
+        this.rest += biasInSeconds * 10;
+        count = Math.floor(this.rest);
+        this.rest -= count;
+        count += this.offset;
+        this.offset = 0;
+
+        this.nextTime = nextTime;
+        this.count = count;
+      },
+      hasNext: function(){
+        return this.iterator < this.currentCount;
+      },
+      next: function(){
+        var get, particle;
+        get = new geomjs.Point(0,0);
+        particle = particlejs.Particle.get({position: get});
+        particle.position.x = get.x;
+        particle.position.y = get.y;
+        particle.maxLife = 100;
+
+        this.iterator++;
+        return particle;
+      },
+      nextTime: function(){
+        return this.nextTime;
+      },
+      finished: function(){
+        var finished = true;
+
+        finished = this.elapsed >= 1000;
+
+        return finished;
+      }
+    }''')
 
 
 
