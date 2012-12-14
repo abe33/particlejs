@@ -1,5 +1,5 @@
 (function() {
-  var $w, ARGUMENTS, BaseAction, ByRate, Cloneable, DEFAULT_RANDOM, DieOnSurface, EMPTY_FUNCTION, Emission, Explosion, Fixed, Force, Friction, Impulse, Inlinable, Instant, KEYWORDS, KEYWORDS_RE, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, PROPERTIES, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, RETURNING_METHODS, RETURN_RE, Random, Randomizable, STRIP_RE, Signal, Sourcable, Stream, SubSystem, Surface, System, THIS_AND_KEYWORDS_RE, Unlimited, UntilDeath, include, mapFragments, requestAnimationFrame,
+  var $w, ARGUMENTS, BaseAction, ByRate, Cloneable, DEFAULT_RANDOM, DieOnSurface, EMPTY_FUNCTION, Emission, Explosion, Fixed, Force, Friction, Impulse, Inlinable, Instant, KEYWORDS, KEYWORDS_RE, Life, Limited, Live, MacroAction, MacroInitializer, MathRandom, Mixin, Move, NullAction, NullCounter, NullEmitter, NullInitializer, NullTimer, PROPERTIES, Particle, ParticleSubSystem, Path, Point, Ponctual, Poolable, RETURNING_METHODS, RETURN_RE, Random, Randomizable, STRIP_RE, Signal, Sourcable, Stream, SubEmission, SubSystem, Surface, System, THIS_AND_KEYWORDS_RE, Unlimited, UntilDeath, include, mapFragments, requestAnimationFrame,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -676,6 +676,8 @@
   /* src/particlejs/actions/live.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   Live = (function(_super) {
 
     __extends(Live, _super);
@@ -683,6 +685,12 @@
     function Live() {
       return Live.__super__.constructor.apply(this, arguments);
     }
+
+    include([
+      Inlinable({
+        noconstructor: true
+      }), Cloneable(), Sourcable('particlejs.Live')
+    ])["in"](Live);
 
     Live.prototype.process = function(particle) {
       particle.life += this.bias;
@@ -698,9 +706,37 @@
   /* src/particlejs/actions/macro_action.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
+  mapFragments = function(member) {
+    return function() {
+      var _this = this;
+      return this.actions.map(function(i) {
+        var a, s;
+        return s = i.sourceFragment != null ? i.sourceFragment(member) : i[member] === Object ? '' : (a = i[member].toString().split('\n'), a.shift(), a.pop(), a.join('\n'));
+      }).join('\n');
+    };
+  };
+
   MacroAction = (function(_super) {
 
     __extends(MacroAction, _super);
+
+    include([
+      Inlinable({
+        mapSource: {
+          constructor: function() {
+            return mapFragments('constructor').call(this);
+          },
+          prepare: function() {
+            return mapFragments('prepare').call(this);
+          },
+          process: function() {
+            return mapFragments('process').call(this);
+          }
+        }
+      }), Cloneable('actions'), Sourcable('particlejs.MacroAction', 'actions')
+    ])["in"](MacroAction);
 
     function MacroAction(actions) {
       this.actions = actions != null ? actions : [];
@@ -863,6 +899,8 @@
 
   Emission = (function() {
 
+    Emission.source = 'particlejs.Emission';
+
     include([Cloneable.apply(null, PROPERTIES)])["in"](Emission);
 
     function Emission(particleType, emitter, timer, counter, initializer) {
@@ -913,13 +951,19 @@
     };
 
     Emission.prototype.toSource = function() {
+      var args;
+      args = this.getArgumentsSource();
+      return "new " + this.constructor.source + "(" + (args.join(',')) + ")";
+    };
+
+    Emission.prototype.getArgumentsSource = function() {
       var args,
         _this = this;
       args = [this.particleType.source];
       ['emitter', 'timer', 'counter', 'initializer'].forEach(function(p) {
         return args.push(_this[p].toSource());
       });
-      return "new particlejs.Emission(" + (args.join(',')) + ")";
+      return args;
     };
 
     return Emission;
@@ -1291,6 +1335,36 @@
 
   })();
 
+  /* src/particlejs/sub_emission.coffee */;
+
+
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
+  SubEmission = (function(_super) {
+
+    __extends(SubEmission, _super);
+
+    SubEmission.source = 'particlejs.SubEmission';
+
+    function SubEmission(particle, particleType, emitter, timer, counter, initializer) {
+      this.particle = particle;
+      SubEmission.__super__.constructor.call(this, particleType, emitter, timer, counter, initializer);
+    }
+
+    SubEmission.prototype.getArgumentsSource = function() {
+      var args,
+        _this = this;
+      args = ['null', this.particleType.source];
+      ['emitter', 'timer', 'counter', 'initializer'].forEach(function(p) {
+        return args.push(_this[p].toSource());
+      });
+      return args;
+    };
+
+    return SubEmission;
+
+  })(Emission);
+
   /* src/particlejs/sub_system.coffee */;
 
 
@@ -1582,7 +1656,15 @@
   /* src/particlejs/timers/until_death.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   UntilDeath = (function() {
+
+    include([
+      Inlinable({
+        noconstructor: true
+      }), Cloneable('duration', 'particle'), Sourcable('particlejs.UntilDeath')
+    ])["in"](UntilDeath);
 
     function UntilDeath(particle) {
       this.particle = particle;
@@ -1659,6 +1741,8 @@
   this.particlejs.Stream = Stream;
 
   this.particlejs.Particle = Particle;
+
+  this.particlejs.SubEmission = SubEmission;
 
   this.particlejs.SubSystem = SubSystem;
 

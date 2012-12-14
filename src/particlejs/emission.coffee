@@ -10,6 +10,7 @@ NullEmitter = require './emitters/null_emitter'
 PROPERTIES = ['particleType','emitter','timer','counter','initializer']
 
 class Emission
+  @source = 'particlejs.Emission'
   include([
     Cloneable.apply(null, PROPERTIES)
   ]).in Emission
@@ -94,10 +95,15 @@ class Emission
   })()"""
 
   toSource: ->
+    args = @getArgumentsSource()
+
+    "new #{@constructor.source}(#{args.join ','})"
+
+  getArgumentsSource: ->
     args = [@particleType.source]
     ['emitter','timer','counter','initializer'].forEach (p) =>
       args.push @[p].toSource()
 
-    "new particlejs.Emission(#{args.join ','})"
+    args
 
 module.exports = Emission

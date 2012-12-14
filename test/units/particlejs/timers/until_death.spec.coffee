@@ -20,3 +20,14 @@ describe 'UntilDeath', ->
 
       timer(source).should.beFinished()
 
+    cloneable(source).shouldCloneItSelf()
+    sourceOf(source).shouldBe('new particlejs.UntilDeath()')
+
+    sourceOf(source).for('constructor')
+    .shouldBe('')
+
+    sourceOf(source).for('finished')
+    .shouldBe('finished = this.particle.dead;')
+
+    sourceOf(source).for('prepare').shouldBe('nextTime = bias;')
+
