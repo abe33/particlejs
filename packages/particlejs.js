@@ -413,7 +413,7 @@
       }
 
       ConcreteInlinable.prototype.sourceFragment = function(member) {
-        var RE, asource, isConstructor, k, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, sourceMapped, sourcify, v, _ref, _ref1,
+        var RE, asource, isArray, isConstructor, k, removeInlinedPropertiesAffectation, replaceInlinedPropertiesWithValues, replacePropertiesWithSource, source, sourceMapped, sourcify, v, _ref, _ref1, _ref2,
           _this = this;
         isConstructor = member === 'constructor';
         source = this[member];
@@ -448,10 +448,17 @@
           }
           source = asource.join('\n');
         }
+        isArray = function(value) {
+          return Object.prototype.toString.call(value).indexOf('Array') !== -1;
+        };
         sourcify = function(value) {
           var _ref1;
           if ((value.toSource != null) && ((_ref1 = typeof value) !== 'string' && _ref1 !== 'number')) {
             return value.toSource();
+          } else if (isArray(value) && !(value.toSource != null)) {
+            return "[" + (value.map(function(v) {
+              return sourcify(v);
+            }).join(',')) + "]";
           } else {
             return value;
           }
@@ -489,13 +496,15 @@
           _ref1 = options.rename;
           for (k in _ref1) {
             v = _ref1[k];
-            source = source.replace(RegExp("\\b" + k + "\\b", "g"), v);
+            source = source.replace(RegExp("" + k, "g"), v);
           }
         }
-        if (__indexOf.call(RETURNING_METHODS, member) >= 0) {
-          source = source.replace(RETURN_RE(), "" + member + " = $1;");
-        } else {
-          source = source.replace(RETURN_RE(), '$1;');
+        if (!((_ref2 = options.keepReturn) != null ? _ref2[member] : void 0)) {
+          if (__indexOf.call(RETURNING_METHODS, member) >= 0) {
+            source = source.replace(RETURN_RE(), "" + member + " = $1;");
+          } else {
+            source = source.replace(RETURN_RE(), '$1;');
+          }
         }
         return source.replace(STRIP_RE(), '');
       };
@@ -602,7 +611,21 @@
   /* src/particlejs/actions/die_on_surface.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   DieOnSurface = (function() {
+
+    include([
+      Inlinable({
+        mapSource: {
+          constructor: 'this.deathSurfaces = @surfaces;'
+        },
+        rename: {
+          'return p\\.die\\(\\);': 'p.die(); break;',
+          surfaces: 'deathSurfaces'
+        }
+      }), Cloneable('surfaces'), Sourcable('particlejs.DieOnSurface', 'surfaces')
+    ])["in"](DieOnSurface);
 
     function DieOnSurface(surfaces) {
       this.surfaces = surfaces;
@@ -631,11 +654,24 @@
   /* src/particlejs/actions/force.coffee */;
 
 
-  Point = geomjs;
+  Point = geomjs.Point;
+
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
 
   Force = (function(_super) {
 
     __extends(Force, _super);
+
+    include([
+      Inlinable({
+        rename: {
+          vector: 'forceVector'
+        },
+        mapSource: {
+          constructor: 'this.vector = @vector;'
+        }
+      }), Cloneable('vector'), Sourcable('particlejs.Force', 'vector')
+    ])["in"](Force);
 
     function Force(vector) {
       this.vector = vector != null ? vector : new Point;
@@ -653,20 +689,26 @@
   /* src/particlejs/actions/friction.coffee */;
 
 
+  Sourcable = mixinsjs.Sourcable, Cloneable = mixinsjs.Cloneable, include = mixinsjs.include;
+
   Friction = (function(_super) {
 
     __extends(Friction, _super);
+
+    include([
+      Inlinable({
+        noconstructor: true,
+        inlinedProperties: ['amount']
+      }), Cloneable('amount'), Sourcable('particlejs.Friction', 'amount')
+    ])["in"](Friction);
 
     function Friction(amount) {
       this.amount = amount != null ? amount : 1;
     }
 
     Friction.prototype.process = function(particle) {
-      var fx, fy;
-      fx = particle.velocity.x * this.biasInSeconds * this.amount;
-      fy = particle.velocity.y * this.biasInSeconds * this.amount;
-      particle.velocity.x -= fx;
-      return particle.velocity.y -= fy;
+      particle.velocity.x -= particle.velocity.x * this.biasInSeconds * this.amount;
+      return particle.velocity.y -= particle.velocity.y * this.biasInSeconds * this.amount;
     };
 
     return Friction;

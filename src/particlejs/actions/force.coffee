@@ -1,10 +1,23 @@
 geomjs = require 'geomjs'
+mixinsjs = require 'mixinsjs'
 
-Point = geomjs
-
+{Point} = geomjs
+{Sourcable, Cloneable, include} = mixinsjs
+Inlinable = require '../mixins/inlinable'
 BaseAction = require './base_action'
 
 class Force extends BaseAction
+  include([
+    Inlinable(
+      rename:
+        vector: 'forceVector'
+      mapSource:
+        constructor: 'this.vector = @vector;'
+      )
+    Cloneable('vector')
+    Sourcable('particlejs.Force','vector')
+  ]).in Force
+
   constructor: (@vector=new Point) ->
   process: (particle) ->
     particle.velocity.x += @vector.x * @biasInSeconds

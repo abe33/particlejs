@@ -4,7 +4,6 @@ mixinsjs = require 'mixinsjs'
 Inlinable = require '../mixins/inlinable'
 BaseAction = require './base_action'
 
-
 class Live extends BaseAction
   include([
     Inlinable(noconstructor: true)

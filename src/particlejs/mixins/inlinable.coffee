@@ -55,9 +55,14 @@ Inlinable = (options={}) ->
         # Source casted back as a string
         source = asource.join('\n')
 
+      isArray = (value) ->
+        Object::toString.call(value).indexOf('Array') isnt -1
+
       sourcify = (value) ->
         if value.toSource? and typeof value not in ['string', 'number']
           value.toSource()
+        else if isArray(value) and not value.toSource?
+          "[#{value.map((v) -> sourcify v).join ','}]"
         else
           value
 
@@ -100,15 +105,16 @@ Inlinable = (options={}) ->
 
       if options.rename?
         for k,v of options.rename
-          source = source.replace ///\b#{k}\b///g, v
+          source = source.replace ///#{k}///g, v
 
       # If the function is supposed to return a value, the return is
       # replaced with an affectation to a variable with the name of the
       # member
-      if member in RETURNING_METHODS
-        source = source.replace RETURN_RE(), "#{member} = $1;"
-      else
-        source = source.replace RETURN_RE(), '$1;'
+      unless options.keepReturn?[member]
+        if member in RETURNING_METHODS
+          source = source.replace RETURN_RE(), "#{member} = $1;"
+        else
+          source = source.replace RETURN_RE(), '$1;'
 
       source.replace(STRIP_RE(), '')
 
