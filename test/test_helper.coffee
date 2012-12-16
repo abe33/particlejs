@@ -30,13 +30,16 @@ paths = Neat.paths.map (p) -> "#{p}/test/helpers"
 files = findSync 'coffee', paths
 files.forEach (f) -> require f
 
+squeeze = (s) -> s.replace /\s+/g, ' '
+strip = (s) -> s.replace /(^\s*|\s*$)/g, ''
+
 global.compilable = (source) ->
   should:
     compileTo: (value) ->
       describe "#{source}.compile()", ->
         it "should return '#{value}'", ->
-          squeeze = (s) -> s.replace /\s+/g, ' '
-          expect(squeeze this[source].compile()).toBe(squeeze value)
+          expect(strip squeeze this[source].compile())
+          .toBe(strip squeeze value)
 
 global.cloneable = (source) ->
   shouldCloneItSelf: ->
@@ -48,12 +51,14 @@ global.sourceOf = (source) ->
   shouldBe: (value) ->
     describe "#{source}.toSource()", ->
       it "should return '#{value}'", ->
-        expect(this[source].toSource()).toBe(value)
+        expect(strip squeeze this[source].toSource())
+        .toBe(strip squeeze value)
 
   for: (member) ->
     shouldBe: (value) ->
       describe "#{source}.sourceFragment('#{member}')", ->
         it "should return '#{value}'", ->
-          expect(this[source].sourceFragment(member)).toBe(value)
+          expect(strip squeeze this[source].sourceFragment(member))
+          .toBe(strip squeeze value)
 
 

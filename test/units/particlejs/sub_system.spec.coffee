@@ -1,3 +1,5 @@
+fs = require 'fs'
+{resolve} = require 'path'
 require '../../test_helper'
 
 {Point} = require 'geomjs'
@@ -42,6 +44,15 @@ describe 'SubSystem,', ->
 
     system(source).shouldHave(0).particles()
     system(source).shouldHave(0).emissions()
+
+    cloneable(source).shouldCloneItSelf()
+    sourceOf(source)
+    .shouldBe('new particlejs.SubSystem(new particlejs.Life(1000,1000,new chancejs.Random(new chancejs.MathRandom())),new particlejs.Live(),function (particle) {\n
+  return new Emission(Particle, new Ponctual(particle.position.clone()), new Limited(1000, 100), new ByRate(10));\n
+})')
+
+    sourceFile = resolve __filename, '../../../fixtures/particlejs/compiled_sub_system.js'
+    compilable(source).should.compileTo(fs.readFileSync(sourceFile).toString())
 
     describe 'when its emitFor method is called', ->
       describe 'with a particle', ->

@@ -1,9 +1,18 @@
+mixinsjs = require 'mixinsjs'
+
+{Sourcable, Cloneable, include} = mixinsjs
+
 Signal = require '../vendor/signal'
 Impulse = require '../vendor/impulse'
 NullInitializer = require './initializers/null_initializer'
 NullAction = require './actions/null_action'
 
 class System
+  @source = 'particlejs.System'
+  include([
+    Cloneable('initializer','action','subSystem'),
+  ]).in System
+
   constructor: (@initializer=new NullInitializer,
                 @action= new NullAction, @subSystem) ->
     @particlesCreated = new Signal
@@ -82,6 +91,7 @@ class System
     for particle in @particles.concat()
       @action.process particle
       @unregisterParticle particle if particle.dead
+    return
 
   initializeParticle: (particle, time) ->
     @initializer.initialize particle
@@ -100,5 +110,60 @@ class System
     particle.constructor.release particle
 
   getTime: -> new Date().valueOf()
+
+  compile: ->
+    """(function(){
+  var CustomSystem,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+  CustomSystem = (function(_super) {
+
+    __extends(CustomSystem, _super);
+
+    function CustomSystem(){
+      CustomSystem.__super__.constructor.call(this);
+      #{@initializer.sourceFragment 'constructor'}
+      #{@action.sourceFragment 'constructor'}
+      this.subSystem = (function() {
+        // TODO
+      })();
+    };
+
+    CustomSystem.prototype.initializeParticle = function(particle, bias){
+      var biasInSeconds = bias / 1000, time = this.getTime();
+      #{@initializer.sourceFragment 'initialize'}
+    };
+
+    CustomSystem.prototype.processParticles = function(bias, biasInSeconds, time){
+      var particle, _i, _len, _ref;
+      #{@action.sourceFragment 'prepare'}
+
+      _ref = this.particles.concat();
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        particle = _ref[_i];
+        #{@action.sourceFragment 'process'}
+        if (particle.dead) {
+          this.unregisterParticle(particle)
+        }
+      }
+    };
+
+  })(particlejs.System);
+
+  return new CustomSystem;
+})()
+"""
+
+  toSource: ->
+    args = @getArgumentsSource()
+
+    "new #{@constructor.source}(#{args.join ','})"
+
+  getArgumentsSource: ->
+    ['initializer','action','subSystem']
+    .select((p) => @[p]?)
+    .map((p) => @[p].toSource())
+
 
 module.exports = System
