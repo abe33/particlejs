@@ -2,6 +2,7 @@ mixinsjs = require 'mixinsjs'
 
 {Sourcable, Cloneable, include} = mixinsjs
 System = require './system'
+Particle = require './particle'
 
 class SubSystem extends System
   @source = 'particlejs.SubSystem'
@@ -28,11 +29,7 @@ class SubSystem extends System
       CustomSubSystem.__super__.constructor.call(this);
       #{@initializer.sourceFragment 'constructor'}
       #{@action.sourceFragment 'constructor'}
-      this.emissionFactory = function(particle){
-        return (function(){
-          // TODO
-        })();
-      };
+      this.emissionFactory = #{@emissionFactory.toString()};
     };
 
     CustomSubSystem.prototype.initializeParticle = function(particle, bias){
